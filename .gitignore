@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Wrangler local state
+.wrangler/
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# OS
+.DS_Store
+
+# Editor local settings
+.vscode/
+.idea/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+cookies*.txt

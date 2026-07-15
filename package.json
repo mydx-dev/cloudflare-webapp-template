@@ -1,0 +1,44 @@
+{
+  "name": "template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cf:types": "wrangler types",
+    "typecheck": "wrangler types && tsc --noEmit",
+    "dev": "vite",
+    "build": "vite build",
+    "cf:dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply db-name --local",
+    "db:migrate:remote": "wrangler d1 migrations apply db-name --remote"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.0",
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.6.23",
+    "@better-auth/oauth-provider": "^1.6.23",
+    "@hono/zod-validator": "^0.8.0",
+    "better-auth": "^1.6.23",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.28",
+    "jose": "^6.2.3",
+    "react-router-dom": "^7.18.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "drizzle-kit": "^0.31.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3",
+    "wrangler": "^4.108.0"
+  }
+}
