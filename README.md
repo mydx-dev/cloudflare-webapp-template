@@ -30,13 +30,15 @@ Webアプリケーションテンプレートです。
 
 ```bash
 pnpm install
-
 pnpm exec wrangler login
-
 pnpm exec wrangler d1 create <database-name>
 
-pnpm db:migrate:local
+cp .dev.vars.example .dev.vars
 
+# wrangler.jsoncへdatabase_nameとdatabase_idを設定
+
+pnpm db:generate
+pnpm db:migrate:local
 pnpm cf:dev
 ```
 
@@ -123,9 +125,9 @@ pnpm exec wrangler secret put BETTER_AUTH_SECRET
 
 # Vite環境変数の設定
 
-ローカル開発ように`.env`を作成します。
+ローカル開発用に`.env`を作成します。
 
-```test
+```bash
 cp .env.example .env
 ```
 
@@ -179,12 +181,6 @@ pnpm dev
 pnpm test
 ```
 
-E2E
-
-```bash
-pnpm e2e
-```
-
 ---
 
 # 品質チェック
@@ -221,11 +217,16 @@ pnpm deploy
 
 ```text
 .
-├── src
+├── .github
+│   └── workflows
 ├── migrations
-├── public
-├── test
-├── e2e
+├── src
+│   ├── backend
+│   └── frontend
+├── drizzle.config.ts
+├── vite.config.ts
+├── vitest.config.ts
+├── vitest.browser.config.ts
 ├── wrangler.jsonc
 └── package.json
 ```
