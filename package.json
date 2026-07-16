@@ -14,6 +14,7 @@
         "test:back:watch": "vitest --config vitest.config.ts",
         "test:front": "vitest run --config vitest.browser.config.ts",
         "test:front:watch": "vitest --config vitest.browser.config.ts",
+        "check": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build",
         "dev": "vite",
         "build": "vite build",
         "cf:dev": "wrangler dev",
@@ -39,6 +40,7 @@
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.5",
+        "@testing-library/react": "^16.3.2",
         "@types/node": "26.1.1",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
