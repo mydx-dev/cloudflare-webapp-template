@@ -34,12 +34,18 @@ pnpm exec wrangler login
 pnpm exec wrangler d1 create <database-name>
 
 cp .dev.vars.example .dev.vars
+openssl rand -base64 32
+```
 
-# wrangler.jsoncへdatabase_nameとdatabase_idを設定
+wrangler.jsoncへdatabase_nameとdatabase_idを設定
 
+```bash
 pnpm db:generate
 pnpm db:migrate:local
+pnpm run deploy
+wrangler secret put BETTER_AUTH_SECRET
 pnpm cf:dev
+pnpm db:migrate:remote
 ```
 
 その後、詳細は下記のセットアップ手順を参照してください。
@@ -100,6 +106,32 @@ database_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 ---
 
+# データベース
+
+## Migration 作成
+
+```bash
+pnpm db:generate
+```
+
+## ローカルへ適用
+
+```bash
+pnpm db:migrate:local
+```
+
+---
+
+# デプロイ
+
+Migration適用後にデプロイします。
+
+```bash
+pnpm deploy
+```
+
+---
+
 # Better Auth の設定
 
 ローカル開発用に `.dev.vars` を作成します。
@@ -129,21 +161,7 @@ pnpm exec wrangler secret put BETTER_AUTH_SECRET
 
 ---
 
-# データベース
-
-## Migration 作成
-
-```bash
-pnpm db:generate
-```
-
-## ローカルへ適用
-
-```bash
-pnpm db:migrate:local
-```
-
-## リモートへ適用
+# リモートへマイグレーション
 
 ```bash
 pnpm db:migrate:remote
@@ -211,17 +229,6 @@ pnpm check
 - Backend Test
 - Frontend Test
 - Build
-
----
-
-# デプロイ
-
-Migration適用後にデプロイします。
-
-```bash
-pnpm db:migrate:remote
-pnpm deploy
-```
 
 ---
 
