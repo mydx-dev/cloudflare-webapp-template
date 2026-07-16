@@ -104,7 +104,7 @@ database_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 ローカル開発用に `.dev.vars` を作成します。
 
-```text
+```bash
 cp .dev.vars.example .dev.vars
 ```
 
@@ -115,23 +115,17 @@ BETTER_AUTH_SECRET=your-secret
 BETTER_AUTH_URL=http://localhost:8787
 ```
 
+secretは以下のコマンドで発行した値を利用します。
+
+```bash
+openssl rand -base64 32
+```
+
 リモート環境では Wrangler Secret を利用します。
 
 ```bash
 pnpm exec wrangler secret put BETTER_AUTH_SECRET
 ```
-
----
-
-# Vite環境変数の設定
-
-ローカル開発用に`.env`を作成します。
-
-```bash
-cp .env.example .env
-```
-
-必要な環境変数を設定してください。
 
 ---
 
@@ -154,6 +148,24 @@ pnpm db:migrate:local
 ```bash
 pnpm db:migrate:remote
 ```
+
+---
+
+# テンプレート利用時に変更する項目
+
+- `package.json`
+    - `name`
+    - `description`
+    - `version`
+- `wrangler.jsonc`
+    - `name`
+    - `database_name`
+    - `database_id`
+- `src/frontend/index.html`
+    - `title`
+- `.dev.vars`
+    - `BETTER_AUTH_SECRET`
+    - `BETTER_AUTH_URL`
 
 ---
 
