@@ -49,7 +49,9 @@ jobs:
                     run: pnpm test:back
 
                   - name: Frontend Test
-                    run: pnpm test:front
+                    run: |
+                        pnpm exec playwright install
+                        pnpm test:front
 
                   - name: Build
                     run: pnpm build
