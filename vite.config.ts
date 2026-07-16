@@ -1,9 +1,12 @@
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    root: fileURLToPath(new URL('./src/frontend', import.meta.url)),
+
     plugins: [react()],
+
     server: {
         proxy: {
             '/api': {
@@ -12,9 +15,9 @@ export default defineConfig({
             },
         },
     },
+
     build: {
-        rollupOptions: {
-            input: resolve(__dirname, 'src/frontend/index.html'),
-        },
+        outDir: fileURLToPath(new URL('./dist', import.meta.url)),
+        emptyOutDir: true,
     },
 });
