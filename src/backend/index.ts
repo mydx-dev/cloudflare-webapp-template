@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
-import { apiRoutes } from './presentation/api/apiRoutes';
-import { authMiddleware } from './presentation/middleware/authMiddleware';
+import { api } from './presentation/api/api';
+import { diMiddleware } from './presentation/middleware/diMiddleware';
 
-const app = new Hono<{ Bindings: Env }>();
-app.on(['GET', 'POST'], '/api/auth/*', authMiddleware);
-app.route('/api', apiRoutes);
+const app = new Hono();
+
+app.use('*', diMiddleware);
+app.route('/api', api);
 export type AppType = typeof app;
 
 export default app;

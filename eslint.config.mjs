@@ -15,6 +15,7 @@ export default [
             'dist/**',
             'coverage/**',
             'node_modules/**',
+            '.wrangler/**',
             'worker-configuration.d.ts',
         ],
     },
