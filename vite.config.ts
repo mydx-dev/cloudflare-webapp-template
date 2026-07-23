@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
@@ -5,7 +6,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     root: fileURLToPath(new URL('./src/frontend', import.meta.url)),
 
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
 
     server: {
         proxy: {
@@ -19,5 +20,16 @@ export default defineConfig({
     build: {
         outDir: fileURLToPath(new URL('./dist', import.meta.url)),
         emptyOutDir: true,
+    },
+
+    resolve: {
+        alias: [
+            {
+                find: /^@\//,
+                replacement:
+                    fileURLToPath(new URL('./src/frontend', import.meta.url)) +
+                    '/',
+            },
+        ],
     },
 });
