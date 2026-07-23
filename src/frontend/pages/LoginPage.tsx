@@ -10,6 +10,7 @@ import { useLoginUser } from '@/hooks/useLoginUser';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleAlert, Mail } from 'lucide-react';
 import { useState } from 'react';
+import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -95,12 +96,110 @@ const SignUpLink = () => {
     );
 };
 
+type LoginFormProps = {
+    errors: FieldErrors<LoginFormValues>;
+    formErrorMessage: string | null;
+    isSubmitDisabled: boolean;
+    onSubmit: () => void;
+    register: UseFormRegister<LoginFormValues>;
+    showSubmitSpinner: boolean;
+};
+
+const LoginForm = ({
+    errors,
+    formErrorMessage,
+    isSubmitDisabled,
+    onSubmit,
+    register,
+    showSubmitSpinner,
+}: LoginFormProps) => {
+    return (
+        <section className="rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(0,32,69,0.08)] relative overflow-hidden">
+            {/* Decorative Subtle Accent */}
+
+            <div className="relative z-10">
+                <form className="space-y-6" onSubmit={onSubmit}>
+                    {formErrorMessage && (
+                        <FormErrorMessage message={formErrorMessage} />
+                    )}
+
+                    {/* Email Field */}
+                    <Field className="space-y-2">
+                        <FieldLabel
+                            htmlFor={emailInputId}
+                            className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1"
+                            required
+                        >
+                            メールアドレス
+                        </FieldLabel>
+                        <FieldContent className="relative group">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">
+                                <Mail className="w-5 h-5" />
+                            </span>
+                            <input
+                                id={emailInputId}
+                                className="w-full bg-highlight border-none rounded-xl py-4 pl-12 pr-12 focus:ring-2 focus:ring-surface-tint/20 transition-all text-on-surface placeholder:text-outline/50"
+                                placeholder="user@example.com"
+                                type="email"
+                                {...register('email')}
+                            />
+                        </FieldContent>
+                        <FieldError
+                            errors={errors.email ? [errors.email] : undefined}
+                        />
+                    </Field>
+                    {/* Password Field */}
+                    <Field className="space-y-2">
+                        <div className="flex justify-between items-end px-1">
+                            <FieldLabel
+                                htmlFor={passwordInputId}
+                                className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+                                required
+                            >
+                                パスワード
+                            </FieldLabel>
+                            <NavLink
+                                className="text-xs font-semibold text-primary hover:text-on-primary-fixed-variant transition-colors"
+                                to="/forgot-password"
+                            >
+                                パスワードを忘れた場合
+                            </NavLink>
+                        </div>
+                        <FieldContent>
+                            <PasswordInput
+                                id={passwordInputId}
+                                placeholder="••••••••"
+                                {...register('password')}
+                            />
+                        </FieldContent>
+                        <FieldError
+                            errors={
+                                errors.password ? [errors.password] : undefined
+                            }
+                        />
+                    </Field>
+                    {/* Login Button */}
+                    <button
+                        className="w-full bg-primary text-on-primary font-bold py-4 rounded-md shadow-lg active:scale-[0.98] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none hover:bg-primary/90 hover:cursor-pointer flex items-center justify-center gap-2"
+                        type="submit"
+                        disabled={isSubmitDisabled}
+                    >
+                        ログイン
+                        {showSubmitSpinner && <Spinner />}
+                    </button>
+                </form>
+            </div>
+        </section>
+    );
+};
+
 export const LoginPage = () => {
     const navigate = useNavigate();
     const session = authClient.useSession();
     const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(
         null
     );
+    const [isVerifyingSession, setIsVerifyingSession] = useState(false);
     const {
         register,
         handleSubmit,
@@ -116,6 +215,7 @@ export const LoginPage = () => {
         try {
             setSubmitErrorMessage(null);
             await mutateAsync(values);
+            setIsVerifyingSession(true);
             await refetchAndGetSession(session.refetch);
             navigate('/', { replace: true });
         } catch (caughtError) {
@@ -124,6 +224,7 @@ export const LoginPage = () => {
                     ? caughtError.message
                     : fallbackLoginErrorMessage
             );
+            setIsVerifyingSession(false);
         }
     };
 
@@ -132,8 +233,9 @@ export const LoginPage = () => {
         isError,
         error
     );
+    const showSubmitSpinner = isPending || isVerifyingSession;
 
-    if (session.isPending) {
+    if (session.isPending || isVerifyingSession) {
         return (
             <div className="flex min-h-64 items-center justify-center">
                 <Spinner />
@@ -141,95 +243,20 @@ export const LoginPage = () => {
         );
     }
 
-    if (session.data) {
+    if (session.data && !isVerifyingSession) {
         return <Navigate to="/" replace />;
     }
 
     return (
         <>
-            <section className="rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(0,32,69,0.08)] relative overflow-hidden">
-                {/* Decorative Subtle Accent */}
-
-                <div className="relative z-10">
-                    <form
-                        className="space-y-6"
-                        onSubmit={handleSubmit(onSubmit)}
-                    >
-                        {formErrorMessage && (
-                            <FormErrorMessage message={formErrorMessage} />
-                        )}
-
-                        {/* Email Field */}
-                        <Field className="space-y-2">
-                            <FieldLabel
-                                htmlFor={emailInputId}
-                                className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1"
-                                required
-                            >
-                                メールアドレス
-                            </FieldLabel>
-                            <FieldContent className="relative group">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">
-                                    <Mail className="w-5 h-5" />
-                                </span>
-                                <input
-                                    id={emailInputId}
-                                    className="w-full bg-highlight border-none rounded-xl py-4 pl-12 pr-12 focus:ring-2 focus:ring-surface-tint/20 transition-all text-on-surface placeholder:text-outline/50"
-                                    placeholder="user@example.com"
-                                    type="email"
-                                    {...register('email')}
-                                />
-                            </FieldContent>
-                            <FieldError
-                                errors={
-                                    errors.email ? [errors.email] : undefined
-                                }
-                            />
-                        </Field>
-                        {/* Password Field */}
-                        <Field className="space-y-2">
-                            <div className="flex justify-between items-end px-1">
-                                <FieldLabel
-                                    htmlFor={passwordInputId}
-                                    className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant"
-                                    required
-                                >
-                                    パスワード
-                                </FieldLabel>
-                                <NavLink
-                                    className="text-xs font-semibold text-primary hover:text-on-primary-fixed-variant transition-colors"
-                                    to="/forgot-password"
-                                >
-                                    パスワードを忘れた場合
-                                </NavLink>
-                            </div>
-                            <FieldContent>
-                                <PasswordInput
-                                    id={passwordInputId}
-                                    placeholder="••••••••"
-                                    {...register('password')}
-                                />
-                            </FieldContent>
-                            <FieldError
-                                errors={
-                                    errors.password
-                                        ? [errors.password]
-                                        : undefined
-                                }
-                            />
-                        </Field>
-                        {/* Login Button */}
-                        <button
-                            className="w-full bg-primary text-on-primary font-bold py-4 rounded-md shadow-lg active:scale-[0.98] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none hover:bg-primary/90 hover:cursor-pointer flex items-center justify-center gap-2"
-                            type="submit"
-                            disabled={!isValid || isPending}
-                        >
-                            ログイン
-                            {isPending && <Spinner />}
-                        </button>
-                    </form>
-                </div>
-            </section>
+            <LoginForm
+                errors={errors}
+                formErrorMessage={formErrorMessage}
+                isSubmitDisabled={!isValid || showSubmitSpinner}
+                onSubmit={handleSubmit(onSubmit)}
+                register={register}
+                showSubmitSpinner={showSubmitSpinner}
+            />
             {/* Secondary CTA */}
             <SignUpLink />
         </>

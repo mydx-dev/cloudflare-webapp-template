@@ -43,6 +43,15 @@ const fillLoginForm = async (password = 'p') => {
     await userEvent.type(screen.getByPlaceholderText('••••••••'), password);
 };
 
+const createDeferred = <T,>() => {
+    let resolve: (value: T) => void;
+    const promise = new Promise<T>((promiseResolve) => {
+        resolve = promiseResolve;
+    });
+
+    return { promise, resolve: resolve! };
+};
+
 beforeEach(() => {
     refetchMock.mockResolvedValue(undefined);
     getSessionMock.mockResolvedValue({
@@ -233,6 +242,46 @@ describe('ログイン送信', () => {
         expect(refetchMock).toHaveBeenCalledOnce();
         expect(getSessionMock).toHaveBeenCalledOnce();
         expect(screen.queryByText('初期画面')).toBeNull();
+    });
+
+    it('refetch 後に session.data が更新されても getSession の検証完了前には遷移しない', async () => {
+        const getSessionDeferred = createDeferred<{
+            data: {
+                session: { id: string };
+                user: { id: string };
+            };
+            error: null;
+        }>();
+        refetchMock.mockImplementation(async () => {
+            useSessionMock.mockReturnValue({
+                data: { user: { id: 'user-1' } },
+                isPending: false,
+                refetch: refetchMock,
+            });
+        });
+        getSessionMock.mockReturnValue(getSessionDeferred.promise);
+        renderLoginPage();
+
+        await fillLoginForm();
+        await userEvent.click(
+            screen.getByRole('button', { name: /ログイン/i })
+        );
+
+        await waitFor(() => {
+            expect(getSessionMock).toHaveBeenCalledOnce();
+        });
+        expect(screen.getByRole('status')).toBeVisible();
+        expect(screen.queryByText('初期画面')).toBeNull();
+
+        getSessionDeferred.resolve({
+            data: {
+                session: { id: 'session-1' },
+                user: { id: 'user-1' },
+            },
+            error: null,
+        });
+
+        expect(await screen.findByText('初期画面')).toBeVisible();
     });
 
     it('送信中はボタンを無効化してスピナーを表示する', async () => {
