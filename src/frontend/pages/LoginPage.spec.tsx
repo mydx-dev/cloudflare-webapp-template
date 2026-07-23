@@ -5,16 +5,19 @@ import { Route, Routes } from 'react-router-dom';
 import { renderWithProviders } from '../../../tests/frontend/renderWithProviders';
 import { LoginPage } from './LoginPage';
 
-const { refetchMock, signInEmailMock, useSessionMock } = vi.hoisted(() => {
-    return {
-        refetchMock: vi.fn(),
-        signInEmailMock: vi.fn(),
-        useSessionMock: vi.fn(),
-    };
-});
+const { getSessionMock, refetchMock, signInEmailMock, useSessionMock } =
+    vi.hoisted(() => {
+        return {
+            getSessionMock: vi.fn(),
+            refetchMock: vi.fn(),
+            signInEmailMock: vi.fn(),
+            useSessionMock: vi.fn(),
+        };
+    });
 
 vi.mock('../lib/authClient', () => ({
     authClient: {
+        getSession: getSessionMock,
         signIn: {
             email: signInEmailMock,
         },
@@ -42,6 +45,13 @@ const fillLoginForm = async (password = 'p') => {
 
 beforeEach(() => {
     refetchMock.mockResolvedValue(undefined);
+    getSessionMock.mockResolvedValue({
+        data: {
+            session: { id: 'session-1' },
+            user: { id: 'user-1' },
+        },
+        error: null,
+    });
     signInEmailMock.mockResolvedValue({
         data: { user: { id: 'user-1' } },
         error: null,
@@ -70,6 +80,28 @@ describe('初期状態', () => {
 
         const loginButton = screen.getByRole('button', { name: /ログイン/i });
         expect(loginButton).toBeVisible();
+    });
+
+    it('ラベルと入力欄が関連付けられている', () => {
+        renderLoginPage();
+
+        expect(screen.getByLabelText('メールアドレス')).toBeVisible();
+        expect(screen.getByLabelText('パスワード')).toBeVisible();
+    });
+
+    it('パスワード表示切替ボタンに状態に応じた名前がある', async () => {
+        renderLoginPage();
+
+        const showButton = screen.getByRole('button', {
+            name: 'パスワードを表示',
+        });
+        expect(showButton).toBeVisible();
+
+        await userEvent.click(showButton);
+
+        expect(
+            screen.getByRole('button', { name: 'パスワードを隠す' })
+        ).toBeVisible();
     });
 
     it('新規登録が有効でない場合、新規登録リンクは表示されない', () => {
@@ -156,13 +188,14 @@ describe('ログイン送信', () => {
             });
         });
         expect(refetchMock).toHaveBeenCalledOnce();
+        expect(getSessionMock).toHaveBeenCalledOnce();
         expect(await screen.findByText('初期画面')).toBeVisible();
     });
 
-    it('認証失敗時に Better Auth の error を利用者向けエラーとして表示する', async () => {
+    it('認証失敗時に Better Auth の内部向け error を利用者向けエラーに変換して表示する', async () => {
         signInEmailMock.mockResolvedValue({
             data: null,
-            error: { message: 'メールアドレスまたはパスワードが違います' },
+            error: { message: 'Invalid email or password' },
         });
         renderLoginPage();
 
@@ -172,9 +205,34 @@ describe('ログイン送信', () => {
         );
 
         expect(
-            await screen.findByText(/メールアドレスまたはパスワードが違います/i)
+            await screen.findByText(
+                /メールアドレスまたはパスワードが正しくありません/i
+            )
         ).toBeVisible();
         expect(refetchMock).not.toHaveBeenCalled();
+        expect(getSessionMock).not.toHaveBeenCalled();
+    });
+
+    it('セッション取得に失敗した場合は初期画面へ遷移しない', async () => {
+        getSessionMock.mockResolvedValue({
+            data: null,
+            error: { message: 'Unauthorized' },
+        });
+        renderLoginPage();
+
+        await fillLoginForm();
+        await userEvent.click(
+            screen.getByRole('button', { name: /ログイン/i })
+        );
+
+        expect(
+            await screen.findByText(
+                /ログイン状態を確認できませんでした。再度ログインしてください。/i
+            )
+        ).toBeVisible();
+        expect(refetchMock).toHaveBeenCalledOnce();
+        expect(getSessionMock).toHaveBeenCalledOnce();
+        expect(screen.queryByText('初期画面')).toBeNull();
     });
 
     it('送信中はボタンを無効化してスピナーを表示する', async () => {

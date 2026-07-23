@@ -6,18 +6,7 @@ type LoginCredentials = {
     password: string;
 };
 
-type AuthError = {
-    message?: string;
-    statusText?: string;
-};
-
-const getLoginErrorMessage = (error: AuthError | null) => {
-    return (
-        error?.message ||
-        error?.statusText ||
-        'ログインに失敗しました。メールアドレスとパスワードを確認してください。'
-    );
-};
+const loginFailedMessage = 'メールアドレスまたはパスワードが正しくありません';
 
 export const useLoginUser = () => {
     return useMutation({
@@ -28,7 +17,7 @@ export const useLoginUser = () => {
             });
 
             if (result.error) {
-                throw new Error(getLoginErrorMessage(result.error));
+                throw new Error(loginFailedMessage);
             }
 
             return result.data;

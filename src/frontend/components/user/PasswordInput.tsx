@@ -28,6 +28,9 @@ export const PasswordInput = ({
             {/* 右アイコン */}
             <button
                 type="button"
+                aria-label={
+                    showPassword ? 'パスワードを隠す' : 'パスワードを表示'
+                }
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors hover:cursor-pointer"
             >

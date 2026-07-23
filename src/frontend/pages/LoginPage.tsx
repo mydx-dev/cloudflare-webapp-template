@@ -9,6 +9,7 @@ import { PasswordInput } from '@/components/user/PasswordInput';
 import { useLoginUser } from '@/hooks/useLoginUser';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleAlert, Mail } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -23,10 +24,83 @@ const loginFormSchema = z.object({
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 const isSignUpEnabled = import.meta.env.VITE_SIGN_UP_ENABLED === 'true';
+const emailInputId = 'login-email';
+const passwordInputId = 'login-password';
+const fallbackLoginErrorMessage =
+    'ログインに失敗しました。再度お試しください。';
+const sessionRefreshFailedMessage =
+    'ログイン状態を確認できませんでした。再度ログインしてください。';
+
+const getFormErrorMessage = (
+    submitErrorMessage: string | null,
+    isError: boolean,
+    error: unknown
+) => {
+    if (submitErrorMessage) {
+        return submitErrorMessage;
+    }
+
+    if (!isError) {
+        return null;
+    }
+
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    return fallbackLoginErrorMessage;
+};
+
+const refetchAndGetSession = async (refetch: () => Promise<void>) => {
+    await refetch();
+    const refreshedSession = await authClient.getSession();
+
+    if (
+        refreshedSession.error ||
+        !refreshedSession.data?.session ||
+        !refreshedSession.data?.user
+    ) {
+        throw new Error(sessionRefreshFailedMessage);
+    }
+};
+
+const FormErrorMessage = ({ message }: { message: string }) => {
+    return (
+        <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-lg text-red-600">
+            <CircleAlert />
+            <p className="text-center text-xs font-semibold leading-relaxed">
+                {message}
+            </p>
+        </div>
+    );
+};
+
+const SignUpLink = () => {
+    if (!isSignUpEnabled) {
+        return null;
+    }
+
+    return (
+        <section className="mt-8 text-center px-4">
+            <p className="text-on-surface-variant text-sm mb-4">
+                アカウントをお持ちでないですか？
+            </p>
+            <NavLink
+                className="block w-full border border-primary text-primary font-bold py-3 rounded-md hover:bg-primary hover:text-on-primary transition-colors duration-200 text-center"
+                to="/sign-up"
+            >
+                新規登録
+            </NavLink>
+        </section>
+    );
+};
 
 export const LoginPage = () => {
     const navigate = useNavigate();
     const session = authClient.useSession();
+    const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(
+        null
+    );
     const {
         register,
         handleSubmit,
@@ -40,13 +114,24 @@ export const LoginPage = () => {
 
     const onSubmit = async (values: LoginFormValues) => {
         try {
+            setSubmitErrorMessage(null);
             await mutateAsync(values);
-            await session.refetch();
+            await refetchAndGetSession(session.refetch);
             navigate('/', { replace: true });
-        } catch {
-            // The mutation state renders the user-facing error message.
+        } catch (caughtError) {
+            setSubmitErrorMessage(
+                caughtError instanceof Error
+                    ? caughtError.message
+                    : fallbackLoginErrorMessage
+            );
         }
     };
+
+    const formErrorMessage = getFormErrorMessage(
+        submitErrorMessage,
+        isError,
+        error
+    );
 
     if (session.isPending) {
         return (
@@ -70,20 +155,14 @@ export const LoginPage = () => {
                         className="space-y-6"
                         onSubmit={handleSubmit(onSubmit)}
                     >
-                        {isError && (
-                            <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-lg text-red-600">
-                                <CircleAlert />
-                                <p className="text-center text-xs font-semibold leading-relaxed">
-                                    {error instanceof Error
-                                        ? error.message
-                                        : 'ログインに失敗しました。再度お試しください。'}
-                                </p>
-                            </div>
+                        {formErrorMessage && (
+                            <FormErrorMessage message={formErrorMessage} />
                         )}
 
                         {/* Email Field */}
                         <Field className="space-y-2">
                             <FieldLabel
+                                htmlFor={emailInputId}
                                 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1"
                                 required
                             >
@@ -94,7 +173,8 @@ export const LoginPage = () => {
                                     <Mail className="w-5 h-5" />
                                 </span>
                                 <input
-                                    className={`w-full bg-highlight border-none rounded-xl py-4 pl-12 pr-12 focus:ring-2 focus:ring-surface-tint/20 transition-all text-on-surface placeholder:text-outline/50`}
+                                    id={emailInputId}
+                                    className="w-full bg-highlight border-none rounded-xl py-4 pl-12 pr-12 focus:ring-2 focus:ring-surface-tint/20 transition-all text-on-surface placeholder:text-outline/50"
                                     placeholder="user@example.com"
                                     type="email"
                                     {...register('email')}
@@ -110,6 +190,7 @@ export const LoginPage = () => {
                         <Field className="space-y-2">
                             <div className="flex justify-between items-end px-1">
                                 <FieldLabel
+                                    htmlFor={passwordInputId}
                                     className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant"
                                     required
                                 >
@@ -124,6 +205,7 @@ export const LoginPage = () => {
                             </div>
                             <FieldContent>
                                 <PasswordInput
+                                    id={passwordInputId}
                                     placeholder="••••••••"
                                     {...register('password')}
                                 />
@@ -149,19 +231,7 @@ export const LoginPage = () => {
                 </div>
             </section>
             {/* Secondary CTA */}
-            {isSignUpEnabled && (
-                <section className="mt-8 text-center px-4">
-                    <p className="text-on-surface-variant text-sm mb-4">
-                        アカウントをお持ちでないですか？
-                    </p>
-                    <NavLink
-                        className="block w-full border border-primary text-primary font-bold py-3 rounded-md hover:bg-primary hover:text-on-primary transition-colors duration-200 text-center"
-                        to="/sign-up"
-                    >
-                        新規登録
-                    </NavLink>
-                </section>
-            )}
+            <SignUpLink />
         </>
     );
 };
