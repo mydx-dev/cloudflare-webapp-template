@@ -222,7 +222,7 @@ describe('ログイン送信', () => {
         expect(getSessionMock).not.toHaveBeenCalled();
     });
 
-    it('セッション取得に失敗した場合は初期画面へ遷移しない', async () => {
+    it('セッション取得に失敗した場合は session を refetch せず初期画面へ遷移しない', async () => {
         getSessionMock.mockResolvedValue({
             data: null,
             error: { message: 'Unauthorized' },
@@ -239,12 +239,12 @@ describe('ログイン送信', () => {
                 /ログイン状態を確認できませんでした。再度ログインしてください。/i
             )
         ).toBeVisible();
-        expect(refetchMock).toHaveBeenCalledOnce();
         expect(getSessionMock).toHaveBeenCalledOnce();
+        expect(refetchMock).not.toHaveBeenCalled();
         expect(screen.queryByText('初期画面')).toBeNull();
     });
 
-    it('refetch 後に session.data が更新されても getSession の検証完了前には遷移しない', async () => {
+    it('getSession の検証完了前には session.data による redirect をしない', async () => {
         const getSessionDeferred = createDeferred<{
             data: {
                 session: { id: string };
@@ -252,13 +252,6 @@ describe('ログイン送信', () => {
             };
             error: null;
         }>();
-        refetchMock.mockImplementation(async () => {
-            useSessionMock.mockReturnValue({
-                data: { user: { id: 'user-1' } },
-                isPending: false,
-                refetch: refetchMock,
-            });
-        });
         getSessionMock.mockReturnValue(getSessionDeferred.promise);
         renderLoginPage();
 
@@ -282,6 +275,35 @@ describe('ログイン送信', () => {
         });
 
         expect(await screen.findByText('初期画面')).toBeVisible();
+    });
+
+    it('refetch が session.data を更新し得る場合でも getSession 失敗時は初期画面へ遷移しない', async () => {
+        getSessionMock.mockResolvedValue({
+            data: null,
+            error: { message: 'Network Error' },
+        });
+        refetchMock.mockImplementation(async () => {
+            useSessionMock.mockReturnValue({
+                data: { user: { id: 'user-1' } },
+                isPending: false,
+                refetch: refetchMock,
+            });
+        });
+        renderLoginPage();
+
+        await fillLoginForm();
+        await userEvent.click(
+            screen.getByRole('button', { name: /ログイン/i })
+        );
+
+        expect(
+            await screen.findByText(
+                /ログイン状態を確認できませんでした。再度ログインしてください。/i
+            )
+        ).toBeVisible();
+        expect(getSessionMock).toHaveBeenCalledOnce();
+        expect(refetchMock).not.toHaveBeenCalled();
+        expect(screen.queryByText('初期画面')).toBeNull();
     });
 
     it('送信中はボタンを無効化してスピナーを表示する', async () => {

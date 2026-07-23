@@ -52,8 +52,7 @@ const getFormErrorMessage = (
     return fallbackLoginErrorMessage;
 };
 
-const refetchAndGetSession = async (refetch: () => Promise<void>) => {
-    await refetch();
+const verifySessionAndRefetch = async (refetch: () => Promise<void>) => {
     const refreshedSession = await authClient.getSession();
 
     if (
@@ -63,6 +62,8 @@ const refetchAndGetSession = async (refetch: () => Promise<void>) => {
     ) {
         throw new Error(sessionRefreshFailedMessage);
     }
+
+    await refetch();
 };
 
 const FormErrorMessage = ({ message }: { message: string }) => {
@@ -216,7 +217,7 @@ export const LoginPage = () => {
             setSubmitErrorMessage(null);
             await mutateAsync(values);
             setIsVerifyingSession(true);
-            await refetchAndGetSession(session.refetch);
+            await verifySessionAndRefetch(session.refetch);
             navigate('/', { replace: true });
         } catch (caughtError) {
             setSubmitErrorMessage(
