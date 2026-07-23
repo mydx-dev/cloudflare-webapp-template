@@ -7,7 +7,7 @@ export const App = () => {
         <Routes>
             <Route path="/" element={<main></main>} />
             <Route element={<GuestLayout />}>
-                <Route path="/login" element={<LoginPage />} />
+                <Route path="/sign-in" element={<LoginPage />} />
             </Route>
         </Routes>
     );

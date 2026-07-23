@@ -3,7 +3,14 @@ import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-export const renderWithProviders = (ui: ReactNode) => {
+type RenderWithProvidersOptions = {
+    initialEntries?: string[];
+};
+
+export const renderWithProviders = (
+    ui: ReactNode,
+    options: RenderWithProvidersOptions = {}
+) => {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {
@@ -17,7 +24,9 @@ export const renderWithProviders = (ui: ReactNode) => {
 
     return render(
         <QueryClientProvider client={queryClient}>
-            <MemoryRouter>{ui}</MemoryRouter>
+            <MemoryRouter initialEntries={options.initialEntries}>
+                {ui}
+            </MemoryRouter>
         </QueryClientProvider>
     );
 };

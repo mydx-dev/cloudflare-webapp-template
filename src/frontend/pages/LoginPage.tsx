@@ -8,32 +8,57 @@ import { Spinner } from '@/components/ui/spinner';
 import { PasswordInput } from '@/components/user/PasswordInput';
 import { useLoginUser } from '@/hooks/useLoginUser';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail } from 'lucide-react';
+import { CircleAlert, Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { NavLink } from 'react-router-dom';
+import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { emailRule, passwordRule } from '../components/user/rules';
+import { emailRule } from '../components/user/rules';
+import { authClient } from '../lib/authClient';
 
 const loginFormSchema = z.object({
     email: emailRule,
-    password: passwordRule,
+    password: z.string().min(1, 'パスワードを入力してください'),
 });
 
+type LoginFormValues = z.infer<typeof loginFormSchema>;
+
+const isSignUpEnabled = import.meta.env.VITE_SIGN_UP_ENABLED === 'true';
+
 export const LoginPage = () => {
+    const navigate = useNavigate();
+    const session = authClient.useSession();
     const {
         register,
         handleSubmit,
         formState: { errors, isValid },
-        getValues,
-    } = useForm({
+    } = useForm<LoginFormValues>({
         resolver: zodResolver(loginFormSchema),
         mode: 'onChange',
     });
 
-    const { mutate, isPending, isError, error } = useLoginUser(
-        getValues('email'),
-        getValues('password')
-    );
+    const { mutateAsync, isPending, isError, error } = useLoginUser();
+
+    const onSubmit = async (values: LoginFormValues) => {
+        try {
+            await mutateAsync(values);
+            await session.refetch();
+            navigate('/', { replace: true });
+        } catch {
+            // The mutation state renders the user-facing error message.
+        }
+    };
+
+    if (session.isPending) {
+        return (
+            <div className="flex min-h-64 items-center justify-center">
+                <Spinner />
+            </div>
+        );
+    }
+
+    if (session.data) {
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <>
@@ -43,14 +68,12 @@ export const LoginPage = () => {
                 <div className="relative z-10">
                     <form
                         className="space-y-6"
-                        onSubmit={handleSubmit(() => mutate())}
+                        onSubmit={handleSubmit(onSubmit)}
                     >
                         {isError && (
                             <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-lg text-red-600">
-                                <span className="material-symbols-outlined text-xl flex-shrink-0 mt-0.5">
-                                    error
-                                </span>
-                                <p className="text-xs font-semibold leading-relaxed">
+                                <CircleAlert />
+                                <p className="text-center text-xs font-semibold leading-relaxed">
                                     {error instanceof Error
                                         ? error.message
                                         : 'ログインに失敗しました。再度お試しください。'}
@@ -126,17 +149,19 @@ export const LoginPage = () => {
                 </div>
             </section>
             {/* Secondary CTA */}
-            <section className="mt-8 text-center px-4">
-                <p className="text-on-surface-variant text-sm mb-4">
-                    アカウントをお持ちでないですか？
-                </p>
-                <NavLink
-                    className="block w-full border border-primary text-primary font-bold py-3 rounded-md hover:bg-primary hover:text-on-primary transition-colors duration-200 text-center"
-                    to="/users/new"
-                >
-                    新規登録
-                </NavLink>
-            </section>
+            {isSignUpEnabled && (
+                <section className="mt-8 text-center px-4">
+                    <p className="text-on-surface-variant text-sm mb-4">
+                        アカウントをお持ちでないですか？
+                    </p>
+                    <NavLink
+                        className="block w-full border border-primary text-primary font-bold py-3 rounded-md hover:bg-primary hover:text-on-primary transition-colors duration-200 text-center"
+                        to="/sign-up"
+                    >
+                        新規登録
+                    </NavLink>
+                </section>
+            )}
         </>
     );
 };
