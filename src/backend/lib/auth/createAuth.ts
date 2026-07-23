@@ -33,5 +33,6 @@ export const createAuth = (env: Env, baseURL: string) => {
                 validAudiences: [`${baseURL}/mcp`],
             }),
         ],
+        trustedOrigins: ['http://localhost:5173'],
     });
 };
