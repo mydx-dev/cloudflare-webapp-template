@@ -10,7 +10,7 @@ export const createAuth = (env: Env, baseURL: string) => {
     const db = drizzle(env.DB, {
         schema: authSchema,
     });
-    const isSignUpEnabled = env.SIGN_UP_ENABLED === 'true';
+    const isSignUpEnabled = String(env.SIGN_UP_ENABLED) === 'true';
 
     return betterAuth({
         baseURL,

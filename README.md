@@ -144,7 +144,7 @@ cp .dev.vars.example .dev.vars
 BETTER_AUTH_SECRET=your-secret
 BETTER_AUTH_URL=http://localhost:8787
 PASSWORD_RESET_EMAIL_FROM=noreply@example.com
-SIGN_UP_ENABLED=true
+SIGN_UP_ENABLED=false
 ```
 
 secretは以下のコマンドで発行した値を利用します。
@@ -164,7 +164,7 @@ pnpm exec wrangler secret put BETTER_AUTH_SECRET
 
 ## 新規ユーザー登録の公開設定
 
-公開登録を有効にする場合は、サーバー側とフロントエンド側の両方を有効にしてください。
+デフォルトでは公開登録は無効です。公開登録を有効にする場合は、サーバー側とフロントエンド側の両方を有効にしてください。
 
 ```dotenv
 # .dev.vars / Wrangler vars

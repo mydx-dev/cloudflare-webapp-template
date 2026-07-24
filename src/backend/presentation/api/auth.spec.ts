@@ -103,6 +103,13 @@ const authRequest = (
     );
 };
 
+const withSignUpEnabled = () => {
+    return {
+        ...env,
+        SIGN_UP_ENABLED: 'true',
+    } as unknown as Env;
+};
+
 const getSession = (cookie: string) => {
     return app.request(
         '/api/auth/get-session',
@@ -130,18 +137,11 @@ describe('Auth API', () => {
 
     it('公開登録が無効な場合、メールアドレスによる登録を拒否する', async () => {
         const email = `disabled-${crypto.randomUUID()}@example.com`;
-        const res = await authRequest(
-            '/sign-up/email',
-            {
-                name: 'Disabled Sign Up User',
-                email,
-                password: 'password-123',
-            },
-            {
-                ...env,
-                SIGN_UP_ENABLED: 'false',
-            } as unknown as Env
-        );
+        const res = await authRequest('/sign-up/email', {
+            name: 'Disabled Sign Up User',
+            email,
+            password: 'password-123',
+        });
 
         expect(res.status).toBe(400);
 
@@ -170,11 +170,15 @@ describe('Auth API', () => {
         const oldPassword = 'old-password-123';
         const newPassword = 'new-password-123';
 
-        const signUpRes = await authRequest('/sign-up/email', {
-            name: 'Reset User',
-            email,
-            password: oldPassword,
-        });
+        const signUpRes = await authRequest(
+            '/sign-up/email',
+            {
+                name: 'Reset User',
+                email,
+                password: oldPassword,
+            },
+            withSignUpEnabled()
+        );
         expect(signUpRes.status).toBe(200);
 
         const signInRes = await authRequest('/sign-in/email', {
