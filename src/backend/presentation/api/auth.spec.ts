@@ -13,7 +13,11 @@ const setupAuthTables = async () => {
                 email_verified integer DEFAULT false NOT NULL,
                 image text,
                 created_at integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-                updated_at integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+                updated_at integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+                role text,
+                banned integer DEFAULT false,
+                ban_reason text,
+                ban_expires integer
             )
         `),
         env.DB.prepare(
@@ -49,6 +53,7 @@ const setupAuthTables = async () => {
                 updated_at integer NOT NULL,
                 ip_address text,
                 user_agent text,
+                impersonated_by text,
                 user_id text NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE cascade
             )

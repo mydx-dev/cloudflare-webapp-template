@@ -32,4 +32,8 @@ export default defineConfig({
             },
         ],
     },
+
+    optimizeDeps: {
+        include: ['better-auth/client/plugins', 'better-auth/plugins/access'],
+    },
 });
