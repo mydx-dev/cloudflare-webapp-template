@@ -4,6 +4,7 @@ import { betterAuth } from 'better-auth';
 import { jwt } from 'better-auth/plugins';
 import { drizzle } from 'drizzle-orm/d1';
 import * as authSchema from '../../infrastructure/db/authSchema';
+import { sendPasswordResetEmail } from './passwordResetEmail';
 
 export const createAuth = (env: Env, baseURL: string) => {
     const db = drizzle(env.DB, {
@@ -21,6 +22,14 @@ export const createAuth = (env: Env, baseURL: string) => {
 
         emailAndPassword: {
             enabled: true,
+            revokeSessionsOnPasswordReset: true,
+            sendResetPassword: async ({ user, url }) => {
+                await sendPasswordResetEmail(env.EMAIL, {
+                    from: env.PASSWORD_RESET_EMAIL_FROM,
+                    user,
+                    url,
+                });
+            },
         },
 
         plugins: [
