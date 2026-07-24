@@ -8,6 +8,14 @@ type ResetPasswordRequest = {
 
 const resetPasswordFailedMessage =
     'パスワードの再設定に失敗しました。再度お試しください。';
+export const invalidResetPasswordTokenMessage = 'INVALID_TOKEN';
+
+const isInvalidTokenError = (error: { code?: string; message?: string }) => {
+    return (
+        error.code === invalidResetPasswordTokenMessage ||
+        error.message === invalidResetPasswordTokenMessage
+    );
+};
 
 export const useResetPassword = () => {
     return useMutation({
@@ -18,7 +26,11 @@ export const useResetPassword = () => {
             });
 
             if (result.error) {
-                throw new Error(resetPasswordFailedMessage);
+                throw new Error(
+                    isInvalidTokenError(result.error)
+                        ? invalidResetPasswordTokenMessage
+                        : resetPasswordFailedMessage
+                );
             }
 
             return result.data;

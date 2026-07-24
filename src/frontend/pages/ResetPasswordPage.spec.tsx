@@ -109,19 +109,50 @@ describe('リセットトークン', () => {
 });
 
 describe('パスワード入力', () => {
-    it('パスワード要件を満たさない場合、エラーメッセージが表示される', async () => {
+    it('Better Authと同じく8文字未満の場合、エラーメッセージが表示される', async () => {
         renderResetPasswordPage();
 
-        await fillResetPasswordForm('password', 'password');
+        await fillResetPasswordForm('short', 'short');
 
         expect(
             await screen.findByText(
-                /パスワードは英語大文字、小文字、数字を含む必要があります/i
+                /パスワードは8文字以上である必要があります/i
             )
         ).toBeVisible();
         expect(
             screen.getByRole('button', { name: /パスワードを保存/i })
         ).toBeDisabled();
+    });
+
+    it('Better Authと同じく128文字を超える場合、エラーメッセージが表示される', async () => {
+        renderResetPasswordPage();
+
+        const longPassword = 'a'.repeat(129);
+        await fillResetPasswordForm(longPassword, longPassword);
+
+        expect(
+            await screen.findByText(
+                /パスワードは128文字以下で入力してください/i
+            )
+        ).toBeVisible();
+        expect(
+            screen.getByRole('button', { name: /パスワードを保存/i })
+        ).toBeDisabled();
+    });
+
+    it('Better Authと同じく8文字以上128文字以下なら複雑性を要求しない', async () => {
+        renderResetPasswordPage();
+
+        await fillResetPasswordForm('longpassword', 'longpassword');
+
+        expect(
+            screen.queryByText(
+                /パスワードは英語大文字、小文字、数字を含む必要があります/i
+            )
+        ).toBeNull();
+        expect(
+            screen.getByRole('button', { name: /パスワードを保存/i })
+        ).toBeEnabled();
     });
 
     it('確認用パスワードが一致しない場合、エラーメッセージが表示される', async () => {
@@ -158,7 +189,7 @@ describe('パスワード再設定', () => {
         expect(await screen.findByText('ログイン画面')).toBeVisible();
     });
 
-    it('無効または期限切れトークンによる失敗時に、機密情報を含まないエラーメッセージを表示する', async () => {
+    it('無効または期限切れトークンによる失敗時に、専用画面へ切り替える', async () => {
         resetPasswordMock.mockResolvedValue({
             data: null,
             error: { message: 'INVALID_TOKEN' },
@@ -171,10 +202,13 @@ describe('パスワード再設定', () => {
         );
 
         expect(
-            await screen.findByText(
+            await screen.findByText(/再設定メールを再送する/i)
+        ).toBeVisible();
+        expect(
+            screen.queryByText(
                 'パスワードの再設定に失敗しました。再度お試しください。'
             )
-        ).toBeVisible();
+        ).toBeNull();
         expect(screen.queryByText(validToken)).toBeNull();
     });
 

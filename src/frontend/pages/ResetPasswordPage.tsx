@@ -1,6 +1,7 @@
 import { Spinner } from '@/components/ui/spinner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, CircleAlert, Info } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -13,7 +14,10 @@ import {
 } from '../components/ui/field';
 import { PasswordInput } from '../components/user/PasswordInput';
 import { passwordRule } from '../components/user/rules';
-import { useResetPassword } from '../hooks/useResetPassword';
+import {
+    invalidResetPasswordTokenMessage,
+    useResetPassword,
+} from '../hooks/useResetPassword';
 
 const resetPasswordFormSchema = z
     .object({
@@ -34,6 +38,29 @@ const invalidTokenMessage =
     'パスワード再設定リンクが無効、または期限切れです。再度パスワード再設定をお試しください。';
 const fallbackErrorMessage =
     'パスワードの再設定に失敗しました。再度お試しください。';
+
+const shouldShowInvalidTokenMessage = ({
+    hasInvalidToken,
+    token,
+    tokenError,
+}: {
+    hasInvalidToken: boolean;
+    token: string;
+    tokenError: string | null;
+}) => {
+    return (
+        !token ||
+        tokenError === invalidResetPasswordTokenMessage ||
+        hasInvalidToken
+    );
+};
+
+const isInvalidResetPasswordTokenError = (error: unknown) => {
+    return (
+        error instanceof Error &&
+        error.message === invalidResetPasswordTokenMessage
+    );
+};
 
 const InvalidTokenMessage = () => {
     return (
@@ -76,6 +103,7 @@ export const ResetPasswordPage = () => {
     const queryParams = new URLSearchParams(location.search);
     const token = queryParams.get('token') || '';
     const tokenError = queryParams.get('error');
+    const [hasInvalidToken, setHasInvalidToken] = useState(false);
 
     const {
         register,
@@ -90,7 +118,7 @@ export const ResetPasswordPage = () => {
     const errorMessage =
         error instanceof Error ? error.message : fallbackErrorMessage;
 
-    if (!token || tokenError === 'INVALID_TOKEN') {
+    if (shouldShowInvalidTokenMessage({ hasInvalidToken, token, tokenError })) {
         return <InvalidTokenMessage />;
     }
 
@@ -115,7 +143,10 @@ export const ResetPasswordPage = () => {
                                 newPassword: data.newPassword,
                             });
                             navigate('/sign-in', { replace: true });
-                        } catch {
+                        } catch (error) {
+                            if (isInvalidResetPasswordTokenError(error)) {
+                                setHasInvalidToken(true);
+                            }
                             return;
                         }
                     })}
@@ -181,11 +212,11 @@ export const ResetPasswordPage = () => {
                             <ul className="text-[11px] leading-relaxed text-on-surface-variant space-y-1">
                                 <li className="flex items-center gap-1.5">
                                     <span className="w-1 h-1 rounded-full bg-tertiary-fixed"></span>
-                                    8文字以上且つ、1文字以上の大文字を含める必要があります
+                                    8文字以上で入力してください
                                 </li>
                                 <li className="flex items-center gap-1.5">
                                     <span className="w-1 h-1 rounded-full bg-tertiary-fixed"></span>
-                                    数字を含めてください
+                                    128文字以下で入力してください
                                 </li>
                             </ul>
                         </div>
