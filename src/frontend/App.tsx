@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { GuestLayout } from './layouts/guest/GuestLayout';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LoginPage } from './pages/LoginPage';
 
 export const App = () => {
@@ -8,6 +9,10 @@ export const App = () => {
             <Route path="/" element={<main></main>} />
             <Route element={<GuestLayout />}>
                 <Route path="/sign-in" element={<LoginPage />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
             </Route>
         </Routes>
     );
