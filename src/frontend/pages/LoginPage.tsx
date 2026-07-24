@@ -16,6 +16,7 @@ import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { emailRule } from '../components/user/rules';
 import { authClient } from '../lib/authClient';
+import { isPublicSignUpEnabled } from '../lib/signUpConfig';
 
 const loginFormSchema = z.object({
     email: emailRule,
@@ -24,7 +25,6 @@ const loginFormSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-const isSignUpEnabled = import.meta.env.VITE_SIGN_UP_ENABLED === 'true';
 const emailInputId = 'login-email';
 const passwordInputId = 'login-password';
 const fallbackLoginErrorMessage =
@@ -78,7 +78,7 @@ const FormErrorMessage = ({ message }: { message: string }) => {
 };
 
 const SignUpLink = () => {
-    if (!isSignUpEnabled) {
+    if (!isPublicSignUpEnabled()) {
         return null;
     }
 

@@ -10,6 +10,7 @@ export const createAuth = (env: Env, baseURL: string) => {
     const db = drizzle(env.DB, {
         schema: authSchema,
     });
+    const isSignUpEnabled = env.SIGN_UP_ENABLED === 'true';
 
     return betterAuth({
         baseURL,
@@ -22,6 +23,9 @@ export const createAuth = (env: Env, baseURL: string) => {
 
         emailAndPassword: {
             enabled: true,
+            disableSignUp: !isSignUpEnabled,
+            minPasswordLength: 8,
+            maxPasswordLength: 128,
             revokeSessionsOnPasswordReset: true,
             sendResetPassword: async ({ user, url }) => {
                 await sendPasswordResetEmail(env.EMAIL, {
