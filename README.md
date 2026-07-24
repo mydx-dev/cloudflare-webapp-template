@@ -36,6 +36,7 @@ pnpm exec wrangler d1 create <database-name>
 # wrangler.jsoncへdatabase_nameとdatabase_idを設定
 
 cp .dev.vars.example .dev.vars
+cp .env.example .env
 openssl rand -base64 32
 
 # .dev.varsへ貼り付け
@@ -143,6 +144,7 @@ cp .dev.vars.example .dev.vars
 BETTER_AUTH_SECRET=your-secret
 BETTER_AUTH_URL=http://localhost:8787
 PASSWORD_RESET_EMAIL_FROM=noreply@example.com
+SIGN_UP_ENABLED=false
 ```
 
 secretは以下のコマンドで発行した値を利用します。
@@ -159,6 +161,21 @@ pnpm exec wrangler secret put BETTER_AUTH_SECRET
 
 パスワード再設定メールは Cloudflare Email Service の `EMAIL` binding から送信します。
 `PASSWORD_RESET_EMAIL_FROM` には、Email Service に登録済みの送信元アドレスを設定してください。
+
+## 新規ユーザー登録の公開設定
+
+デフォルトでは公開登録は無効です。公開登録を有効にする場合は、サーバー側とフロントエンド側の両方を有効にしてください。
+
+```dotenv
+# .dev.vars / Wrangler vars
+SIGN_UP_ENABLED=true
+
+# .env / build environment
+VITE_SIGN_UP_ENABLED=true
+```
+
+`SIGN_UP_ENABLED=false` の場合、Better Auth の登録 API は拒否されます。
+`VITE_SIGN_UP_ENABLED=false` の場合、ログイン画面の登録リンクと `/sign-up` の登録フォームは表示されません。
 
 ---
 
@@ -178,6 +195,9 @@ pnpm exec wrangler secret put BETTER_AUTH_SECRET
     - `BETTER_AUTH_SECRET`
     - `BETTER_AUTH_URL`
     - `PASSWORD_RESET_EMAIL_FROM`
+    - `SIGN_UP_ENABLED`
+- `.env`
+    - `VITE_SIGN_UP_ENABLED`
 
 ---
 

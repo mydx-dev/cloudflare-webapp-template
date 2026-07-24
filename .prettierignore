@@ -2,3 +2,5 @@ pnpm-lock.yaml
 .github/workflows/*
 worker-configuration.d.ts
 migrations/meta/
+.env*
+.dev.vars*

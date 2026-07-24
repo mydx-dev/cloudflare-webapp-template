@@ -84,7 +84,11 @@ const setupAuthTables = async () => {
     ]);
 };
 
-const authRequest = (path: string, body: Record<string, unknown>) => {
+const authRequest = (
+    path: string,
+    body: Record<string, unknown>,
+    testEnv: Env = env
+) => {
     return app.request(
         `/api/auth${path}`,
         {
@@ -95,8 +99,15 @@ const authRequest = (path: string, body: Record<string, unknown>) => {
             },
             body: JSON.stringify(body),
         },
-        env
+        testEnv
     );
+};
+
+const withSignUpEnabled = () => {
+    return {
+        ...env,
+        SIGN_UP_ENABLED: 'true',
+    } as unknown as Env;
 };
 
 const getSession = (cookie: string) => {
@@ -124,6 +135,24 @@ const findPasswordResetToken = async (email: string) => {
 describe('Auth API', () => {
     beforeAll(setupAuthTables);
 
+    it('公開登録が無効な場合、メールアドレスによる登録を拒否する', async () => {
+        const email = `disabled-${crypto.randomUUID()}@example.com`;
+        const res = await authRequest('/sign-up/email', {
+            name: 'Disabled Sign Up User',
+            email,
+            password: 'password-123',
+        });
+
+        expect(res.status).toBe(400);
+
+        const user = await env.DB.prepare(
+            'SELECT id FROM "user" WHERE email = ?'
+        )
+            .bind(email)
+            .first();
+        expect(user).toBeNull();
+    });
+
     it('未登録メールアドレスへのパスワード再設定リクエストも成功レスポンスを返す', async () => {
         const res = await authRequest('/request-password-reset', {
             email: 'unknown@example.com',
@@ -141,11 +170,15 @@ describe('Auth API', () => {
         const oldPassword = 'old-password-123';
         const newPassword = 'new-password-123';
 
-        const signUpRes = await authRequest('/sign-up/email', {
-            name: 'Reset User',
-            email,
-            password: oldPassword,
-        });
+        const signUpRes = await authRequest(
+            '/sign-up/email',
+            {
+                name: 'Reset User',
+                email,
+                password: oldPassword,
+            },
+            withSignUpEnabled()
+        );
         expect(signUpRes.status).toBe(200);
 
         const signInRes = await authRequest('/sign-in/email', {
