@@ -7,6 +7,7 @@ type PasswordInputProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export const PasswordInput = ({
     className = '',
+    leftIcon,
     ...props
 }: PasswordInputProps) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -15,7 +16,7 @@ export const PasswordInput = ({
         <div className="relative group">
             {/* 左アイコン */}
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">
-                {<LockKeyhole />}
+                {leftIcon ?? <LockKeyhole />}
             </span>
 
             {/* input */}

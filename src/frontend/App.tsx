@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { GuestLayout } from './layouts/guest/GuestLayout';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LoginPage } from './pages/LoginPage';
-
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 export const App = () => {
     return (
         <Routes>
@@ -13,6 +13,7 @@ export const App = () => {
                     path="/forgot-password"
                     element={<ForgotPasswordPage />}
                 />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Route>
         </Routes>
     );
