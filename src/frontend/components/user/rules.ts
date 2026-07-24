@@ -10,7 +10,4 @@ export const emailRule = z
 export const passwordRule = z
     .string()
     .min(8, 'パスワードは8文字以上である必要があります')
-    .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&-]+$/,
-        'パスワードは英語大文字、小文字、数字を含む必要があります'
-    );
+    .max(128, 'パスワードは128文字以下で入力してください');
