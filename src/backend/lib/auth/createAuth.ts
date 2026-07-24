@@ -1,8 +1,12 @@
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { oauthProvider } from '@better-auth/oauth-provider';
 import { betterAuth } from 'better-auth';
-import { jwt } from 'better-auth/plugins';
+import { admin, jwt } from 'better-auth/plugins';
 import { drizzle } from 'drizzle-orm/d1';
+import {
+    authAccessControl,
+    authAccessRoles,
+} from '../../../shared/auth/accessControl';
 import * as authSchema from '../../infrastructure/db/authSchema';
 import { sendPasswordResetEmail } from './passwordResetEmail';
 
@@ -37,6 +41,12 @@ export const createAuth = (env: Env, baseURL: string) => {
         },
 
         plugins: [
+            admin({
+                ac: authAccessControl,
+                roles: authAccessRoles,
+                defaultRole: 'user',
+                adminRoles: ['admin'],
+            }),
             jwt(),
             oauthProvider({
                 loginPage: '/sign-in',
