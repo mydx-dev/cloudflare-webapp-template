@@ -1,10 +1,17 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authorizationMiddleware } from './authorizationMiddleware';
 
-const { getSessionMock, userHasPermissionMock } = vi.hoisted(() => ({
-    getSessionMock: vi.fn(),
-    userHasPermissionMock: vi.fn(),
+const { createAuthMock, getSessionMock, userHasPermissionMock } = vi.hoisted(
+    () => ({
+        createAuthMock: vi.fn(),
+        getSessionMock: vi.fn(),
+        userHasPermissionMock: vi.fn(),
+    })
+);
+
+vi.mock('../../lib/auth/createAuth', () => ({
+    createAuth: createAuthMock,
 }));
 
 const createPermissionApp = () => {
@@ -14,6 +21,22 @@ const createPermissionApp = () => {
 
     return app;
 };
+
+beforeEach(() => {
+    getSessionMock.mockResolvedValue({
+        session: { id: 'session-1' },
+        user: { id: 'user-1', role: 'user' },
+    });
+    userHasPermissionMock.mockResolvedValue({
+        success: true,
+    });
+    createAuthMock.mockReturnValue({
+        api: {
+            getSession: getSessionMock,
+            userHasPermission: userHasPermissionMock,
+        },
+    });
+});
 
 describe('authorizationMiddleware', () => {
     it('未認証の場合は 401 を返す', async () => {

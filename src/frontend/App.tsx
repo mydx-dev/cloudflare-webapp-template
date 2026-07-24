@@ -34,14 +34,7 @@ export const App = () => {
                         </GuestOnlyGuard>
                     }
                 />
-                <Route
-                    path="/reset-password"
-                    element={
-                        <GuestOnlyGuard>
-                            <ResetPasswordPage />
-                        </GuestOnlyGuard>
-                    }
-                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route
                     path="/sign-up"
                     element={

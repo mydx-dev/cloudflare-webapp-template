@@ -1,21 +1,17 @@
-import { screen } from '@testing-library/react';
+import { cleanup, screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../tests/frontend/renderWithProviders';
 import { AuthGuard } from './AuthGuard';
 import { GuestOnlyGuard } from './GuestOnlyGuard';
 import { PermissionGuard } from './PermissionGuard';
 
-const { checkRolePermissionMock, useSessionMock } = vi.hoisted(() => ({
-    checkRolePermissionMock: vi.fn(),
+const { useSessionMock } = vi.hoisted(() => ({
     useSessionMock: vi.fn(),
 }));
 
 vi.mock('../../lib/authClient', () => ({
     authClient: {
-        admin: {
-            checkRolePermission: checkRolePermissionMock,
-        },
         useSession: useSessionMock,
     },
 }));
@@ -57,11 +53,15 @@ const renderRoutes = (initialEntries: string[] = ['/private']) => {
 };
 
 beforeEach(() => {
-    checkRolePermissionMock.mockReturnValue(true);
     useSessionMock.mockReturnValue({
         data: null,
         isPending: false,
     });
+});
+
+afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
 });
 
 describe('AuthGuard', () => {
@@ -123,15 +123,23 @@ describe('PermissionGuard', () => {
 
         renderRoutes(['/users/edit']);
 
-        expect(checkRolePermissionMock).toHaveBeenCalledWith({
-            role: 'manager',
-            permissions: { user: ['update'] },
+        expect(screen.getByText('編集画面')).toBeVisible();
+    });
+
+    it('複数ロールのいずれかに権限がある場合は子要素を表示する', () => {
+        useSessionMock.mockReturnValue({
+            data: {
+                user: { id: 'user-1', role: 'manager,user' },
+            },
+            isPending: false,
         });
+
+        renderRoutes(['/users/edit']);
+
         expect(screen.getByText('編集画面')).toBeVisible();
     });
 
     it('権限がない場合は fallback を表示する', () => {
-        checkRolePermissionMock.mockReturnValue(false);
         useSessionMock.mockReturnValue({
             data: {
                 user: { id: 'user-1', role: 'user' },

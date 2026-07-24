@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import type {
-    AuthPermission,
-    AuthRole,
-} from '../../../shared/auth/accessControl';
+import type { AuthPermission } from '../../../shared/auth/accessControl';
+import { checkRolePermission } from '../../../shared/auth/accessControl';
 import { authClient } from '../../lib/authClient';
 
 type PermissionGuardProps = {
@@ -25,11 +23,7 @@ export const PermissionGuard = ({
 }: PermissionGuardProps) => {
     const session = authClient.useSession();
     const role = (session.data?.user as SessionUserWithRole | undefined)?.role;
-    const accessRole = (role || 'user') as AuthRole;
-    const hasPermission = authClient.admin.checkRolePermission({
-        role: accessRole,
-        permissions: permission,
-    });
+    const hasPermission = checkRolePermission(role, permission);
 
     if (hasPermission) {
         return children;
