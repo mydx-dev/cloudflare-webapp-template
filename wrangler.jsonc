@@ -10,6 +10,10 @@
             "database_name": "mydx_template-db",
         },
     ],
+    "send_email": [{ "name": "EMAIL" }],
+    "vars": {
+        "PASSWORD_RESET_EMAIL_FROM": "noreply@example.com",
+    },
 
     "assets": {
         "directory": "./dist",

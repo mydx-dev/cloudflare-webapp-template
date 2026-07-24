@@ -142,6 +142,7 @@ cp .dev.vars.example .dev.vars
 ```dotenv
 BETTER_AUTH_SECRET=your-secret
 BETTER_AUTH_URL=http://localhost:8787
+PASSWORD_RESET_EMAIL_FROM=noreply@example.com
 ```
 
 secretは以下のコマンドで発行した値を利用します。
@@ -155,6 +156,9 @@ openssl rand -base64 32
 ```bash
 pnpm exec wrangler secret put BETTER_AUTH_SECRET
 ```
+
+パスワード再設定メールは Cloudflare Email Service の `EMAIL` binding から送信します。
+`PASSWORD_RESET_EMAIL_FROM` には、Email Service に登録済みの送信元アドレスを設定してください。
 
 ---
 
@@ -173,6 +177,7 @@ pnpm exec wrangler secret put BETTER_AUTH_SECRET
 - `.dev.vars`
     - `BETTER_AUTH_SECRET`
     - `BETTER_AUTH_URL`
+    - `PASSWORD_RESET_EMAIL_FROM`
 
 ---
 
