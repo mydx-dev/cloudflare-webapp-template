@@ -1,11 +1,19 @@
 import { Route, Routes } from 'react-router-dom';
 import { AuthGuard } from './components/guards/AuthGuard';
 import { GuestOnlyGuard } from './components/guards/GuestOnlyGuard';
+import { PermissionGuard } from './components/guards/PermissionGuard';
 import { GuestLayout } from './layouts/guest/GuestLayout';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LoginPage } from './pages/LoginPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { SignupPage } from './pages/SignupPage';
+import { UserDetailPage } from './pages/UserDetailPage';
+import { UserListPage } from './pages/UserListPage';
+
+const userManagementPermission = {
+    user: ['list' as const],
+};
+
 export const App = () => {
     return (
         <Routes>
@@ -14,6 +22,32 @@ export const App = () => {
                 element={
                     <AuthGuard>
                         <main aria-label="Dashboard"></main>
+                    </AuthGuard>
+                }
+            />
+            <Route
+                path="/users"
+                element={
+                    <AuthGuard>
+                        <PermissionGuard
+                            permission={userManagementPermission}
+                            redirectTo="/"
+                        >
+                            <UserListPage />
+                        </PermissionGuard>
+                    </AuthGuard>
+                }
+            />
+            <Route
+                path="/users/:id"
+                element={
+                    <AuthGuard>
+                        <PermissionGuard
+                            permission={userManagementPermission}
+                            redirectTo="/"
+                        >
+                            <UserDetailPage />
+                        </PermissionGuard>
                     </AuthGuard>
                 }
             />

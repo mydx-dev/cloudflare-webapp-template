@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
+import type { AppEnv } from '../../types/app-env';
 import { authHandler } from '../handler/authHandler';
-import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
+import { users } from './users';
 
-export const api = new Hono<{ Bindings: Env }>();
+export const api = new Hono<AppEnv>();
 api.on(['GET', 'POST'], '/auth/*', authHandler);
 
 api.get('/health', (c) => {
@@ -11,4 +12,4 @@ api.get('/health', (c) => {
     });
 });
 
-api.use('/*', authenticationMiddleware);
+api.route('/users', users);
