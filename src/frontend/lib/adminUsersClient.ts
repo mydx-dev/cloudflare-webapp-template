@@ -92,11 +92,14 @@ export const listAdminUsers = ({
         limit: '50',
         offset: '0',
         searchField: resolvedSearchField,
-        status,
     });
 
     if (normalizedSearch) {
         params.set('searchValue', normalizedSearch);
+    }
+
+    if (status !== 'all') {
+        params.set('status', status);
     }
 
     return adminFetch<AdminUsersResponse>(`/users?${params.toString()}`);

@@ -10,6 +10,7 @@ import {
     UserRound,
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { PermissionGuard } from '../components/guards/PermissionGuard';
 import { Spinner } from '../components/ui/spinner';
 import {
     useAdminUser,
@@ -31,6 +32,22 @@ const roleLabels: Record<AuthRole, string> = {
     admin: '管理者',
     manager: 'マネージャー',
     user: 'ユーザー',
+};
+
+const banUserPermission = {
+    user: ['ban' as const],
+};
+
+const deleteUserPermission = {
+    user: ['delete' as const],
+};
+
+const revokeSessionPermission = {
+    session: ['revoke' as const],
+};
+
+const setRolePermission = {
+    user: ['set-role' as const],
 };
 
 const formatDateTime = (value: string) =>
@@ -157,57 +174,61 @@ const UserProfileCard = ({
                 <DetailRow label="BAN 理由" value={user.banReason} />
             ) : null}
         </div>
-        <div className="mt-8 border-t border-border pt-6">
-            <label
-                className="mb-2 block text-xs font-bold uppercase text-secondary"
-                htmlFor="user-role"
-            >
-                ロール変更
-            </label>
-            <select
-                id="user-role"
-                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none ring-primary/20 transition focus:ring-2"
-                value={getPrimaryRole(user.role)}
-                disabled={isRolePending}
-                onChange={(event) =>
-                    onRoleChange(event.target.value as AuthRole)
-                }
-            >
-                {roleOptions.map((role) => (
-                    <option key={role.value} value={role.value}>
-                        {role.label}
-                    </option>
-                ))}
-            </select>
-        </div>
-        <div className="mt-5 flex items-center justify-between gap-4 rounded-lg bg-red-50 p-4">
-            <div>
-                <p className="text-sm font-bold text-red-800">
-                    アクセス制限 (BAN)
-                </p>
-                <p className="text-xs text-red-700">
-                    このユーザーのアカウントを即時停止します
-                </p>
+        <PermissionGuard permission={setRolePermission}>
+            <div className="mt-8 border-t border-border pt-6">
+                <label
+                    className="mb-2 block text-xs font-bold uppercase text-secondary"
+                    htmlFor="user-role"
+                >
+                    ロール変更
+                </label>
+                <select
+                    id="user-role"
+                    className="h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none ring-primary/20 transition focus:ring-2"
+                    value={getPrimaryRole(user.role)}
+                    disabled={isRolePending}
+                    onChange={(event) =>
+                        onRoleChange(event.target.value as AuthRole)
+                    }
+                >
+                    {roleOptions.map((role) => (
+                        <option key={role.value} value={role.value}>
+                            {role.label}
+                        </option>
+                    ))}
+                </select>
             </div>
-            <button
-                aria-label="アクセス制限 (BAN)"
-                aria-pressed={Boolean(user.banned)}
-                className={[
-                    'relative h-7 w-12 rounded-full transition-colors disabled:opacity-40',
-                    user.banned ? 'bg-red-600' : 'bg-secondary',
-                ].join(' ')}
-                type="button"
-                disabled={isBanPending}
-                onClick={onToggleBan}
-            >
-                <span
+        </PermissionGuard>
+        <PermissionGuard permission={banUserPermission}>
+            <div className="mt-5 flex items-center justify-between gap-4 rounded-lg bg-red-50 p-4">
+                <div>
+                    <p className="text-sm font-bold text-red-800">
+                        アクセス制限 (BAN)
+                    </p>
+                    <p className="text-xs text-red-700">
+                        このユーザーのアカウントを即時停止します
+                    </p>
+                </div>
+                <button
+                    aria-label="アクセス制限 (BAN)"
+                    aria-pressed={Boolean(user.banned)}
                     className={[
-                        'absolute top-1 size-5 rounded-full bg-white transition-transform',
-                        user.banned ? 'translate-x-5' : 'translate-x-1',
+                        'relative h-7 w-12 rounded-full transition-colors disabled:opacity-40',
+                        user.banned ? 'bg-red-600' : 'bg-secondary',
                     ].join(' ')}
-                />
-            </button>
-        </div>
+                    type="button"
+                    disabled={isBanPending}
+                    onClick={onToggleBan}
+                >
+                    <span
+                        className={[
+                            'absolute top-1 size-5 rounded-full bg-white transition-transform',
+                            user.banned ? 'translate-x-5' : 'translate-x-1',
+                        ].join(' ')}
+                    />
+                </button>
+            </div>
+        </PermissionGuard>
     </section>
 );
 
@@ -241,14 +262,16 @@ const SessionRow = ({
             {formatDateTime(session.updatedAt)}
         </td>
         <td className="px-6 py-4 text-right">
-            <button
-                className="rounded border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-40"
-                type="button"
-                disabled={isPending}
-                onClick={() => onRevoke(session.token)}
-            >
-                Revoke
-            </button>
+            <PermissionGuard permission={revokeSessionPermission}>
+                <button
+                    className="rounded border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-40"
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onRevoke(session.token)}
+                >
+                    Revoke
+                </button>
+            </PermissionGuard>
         </td>
     </tr>
 );
@@ -407,10 +430,12 @@ export const UserDetailPage = () => {
                                 onRevoke={onRevokeSession}
                             />
                         </div>
-                        <DangerZone
-                            isPending={deleteUser.isPending}
-                            onDelete={onDelete}
-                        />
+                        <PermissionGuard permission={deleteUserPermission}>
+                            <DangerZone
+                                isPending={deleteUser.isPending}
+                                onDelete={onDelete}
+                            />
+                        </PermissionGuard>
                         {mutationErrorMessage ? (
                             <p className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">
                                 {mutationErrorMessage}

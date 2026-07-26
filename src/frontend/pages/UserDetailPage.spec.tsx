@@ -11,6 +11,7 @@ const {
     setRoleMutateAsyncMock,
     signOutMock,
     toggleBanMutateAsyncMock,
+    useSessionMock,
     useAdminUserMock,
 } = vi.hoisted(() => ({
     deleteMutateAsyncMock: vi.fn(),
@@ -18,20 +19,14 @@ const {
     setRoleMutateAsyncMock: vi.fn(),
     signOutMock: vi.fn(),
     toggleBanMutateAsyncMock: vi.fn(),
+    useSessionMock: vi.fn(),
     useAdminUserMock: vi.fn(),
 }));
 
 vi.mock('../lib/authClient', () => ({
     authClient: {
         signOut: signOutMock,
-        useSession: () => ({
-            data: {
-                user: {
-                    email: 'admin@example.com',
-                    name: 'Admin User',
-                },
-            },
-        }),
+        useSession: useSessionMock,
     },
 }));
 
@@ -96,6 +91,15 @@ const renderUserDetailPage = () => {
 
 beforeEach(() => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
+    useSessionMock.mockReturnValue({
+        data: {
+            user: {
+                email: 'admin@example.com',
+                name: 'Admin User',
+                role: 'admin',
+            },
+        },
+    });
     useAdminUserMock.mockReturnValue({
         data: userDetailResponse,
         error: null,
@@ -159,5 +163,30 @@ describe('UserDetailPage', () => {
         await waitFor(() => {
             expect(screen.getByText('一覧画面')).toBeVisible();
         });
+    });
+
+    it('操作権限がない場合は変更系の UI を表示しない', () => {
+        useSessionMock.mockReturnValue({
+            data: {
+                user: {
+                    email: 'viewer@example.com',
+                    name: 'Viewer User',
+                    role: 'user',
+                },
+            },
+        });
+
+        renderUserDetailPage();
+
+        expect(screen.queryByLabelText('ロール変更')).toBeNull();
+        expect(
+            screen.queryByRole('button', { name: 'アクセス制限 (BAN)' })
+        ).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Revoke' })).toBeNull();
+        expect(
+            screen.queryByRole('button', {
+                name: 'アカウントを完全に削除する',
+            })
+        ).toBeNull();
     });
 });

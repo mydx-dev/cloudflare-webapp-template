@@ -93,6 +93,22 @@ beforeEach(() => {
 });
 
 describe('Users API', () => {
+    it('status 未指定の通常一覧では BAN filter を付けずに取得する', async () => {
+        const res = await app.request('/api/users', {}, {} as Env);
+
+        expect(res.status).toBe(200);
+        expect(await res.json()).toMatchObject({
+            total: 1,
+            users: [{ id: 'user-2', email: 'target@example.com' }],
+        });
+        expect(listUsersMock).toHaveBeenCalledWith({
+            headers: expect.any(Headers),
+            query: expect.not.objectContaining({
+                filterField: 'banned',
+            }),
+        });
+    });
+
     it('管理者向けユーザー一覧を Better Auth Admin Plugin 経由で返す', async () => {
         const res = await app.request(
             '/api/users?searchValue=target&searchField=name&status=active',
