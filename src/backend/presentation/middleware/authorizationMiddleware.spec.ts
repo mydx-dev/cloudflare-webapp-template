@@ -16,8 +16,8 @@ vi.mock('../../lib/auth/createAuth', () => ({
 
 const createPermissionApp = () => {
     const app = new Hono<{ Bindings: Env }>();
-    app.use('/admin/*', authorizationMiddleware({ user: ['update'] }));
-    app.get('/admin/users', (c) => c.json({ status: 'ok' }));
+    app.use('/users/*', authorizationMiddleware({ user: ['update'] }));
+    app.get('/users/:id', (c) => c.json({ status: 'ok' }));
 
     return app;
 };
@@ -43,7 +43,7 @@ describe('authorizationMiddleware', () => {
         getSessionMock.mockResolvedValue(null);
 
         const res = await createPermissionApp().request(
-            '/admin/users',
+            '/users/user-1',
             {},
             {} as Env
         );
@@ -58,7 +58,7 @@ describe('authorizationMiddleware', () => {
         });
 
         const res = await createPermissionApp().request(
-            '/admin/users',
+            '/users/user-1',
             {},
             {} as Env
         );
@@ -69,7 +69,7 @@ describe('authorizationMiddleware', () => {
 
     it('権限がある場合は後続の handler を実行する', async () => {
         const res = await createPermissionApp().request(
-            '/admin/users',
+            '/users/user-1',
             {},
             {} as Env
         );
