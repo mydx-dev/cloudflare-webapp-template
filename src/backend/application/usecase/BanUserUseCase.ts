@@ -1,7 +1,7 @@
-import { createAuth } from '../../lib/auth/createAuth';
+import { Auth } from '../../lib/auth/auth';
 
 export class BanUserUseCase {
-    constructor(private readonly auth: ReturnType<typeof createAuth>) {}
+    constructor(private readonly auth: Auth) {}
 
     async execute(input: {
         banExpiresIn?: number;

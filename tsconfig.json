@@ -15,7 +15,8 @@
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
-        "paths": { "@/*": ["./src/frontend/*"] }
+        "paths": { "@/*": ["./src/frontend/*"] },
+        "types": ["@cloudflare/vitest-pool-workers/types"]
     },
-    "include": ["src", "vite.config.ts", "worker-configuration.d.ts"]
+    "include": ["src", "vite.config.ts", "worker-configuration.d.ts", "tests"]
 }

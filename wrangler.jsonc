@@ -11,10 +11,6 @@
         },
     ],
     "send_email": [{ "name": "EMAIL" }],
-    "vars": {
-        "PASSWORD_RESET_EMAIL_FROM": "noreply@example.com",
-        "SIGN_UP_ENABLED": "false",
-    },
 
     "assets": {
         "directory": "./dist",
