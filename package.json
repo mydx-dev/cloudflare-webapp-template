@@ -24,6 +24,8 @@
         "db:generate": "drizzle-kit generate",
         "db:migrate:local": "wrangler d1 migrations apply DB --local",
         "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+        "db:seed:local": "node scripts/seedLocal.mjs",
+        "db:setup:local": "pnpm db:migrate:local && pnpm db:seed:local",
         "spec:generate:domain": "vitest list src/backend/domain --static-parse > docs/DOMAIN_SPEC.md",
         "spec:generate:application": "vitest list src/backend/application --static-parse > docs/APPLICATION_SPEC.md",
         "spec:generate:infrastructure": "vitest list src/backend/infrastructure --static-parse > docs/INFRASTRUCTURE_SPEC.md",
