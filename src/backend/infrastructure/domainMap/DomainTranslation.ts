@@ -1,6 +1,5 @@
 export class DomainTranslation<TDomain, TRecord> {
     constructor(
-        public readonly name: string,
         private readonly serialize: (domain: TDomain) => TRecord,
         private readonly deserialize: (record: TRecord) => TDomain
     ) {}

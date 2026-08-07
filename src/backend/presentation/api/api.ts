@@ -1,10 +1,13 @@
 import { Hono } from 'hono';
+import { auth } from '../../lib/auth/auth';
 import type { AppEnv } from '../../types/app-env';
-import { authHandler } from '../handler/authHandler';
+import { invitations } from './invitations';
 import { users } from './users';
 
 export const api = new Hono<AppEnv>();
-api.on(['GET', 'POST'], '/auth/*', authHandler);
+api.on(['GET', 'POST'], '/auth/*', async (c) => {
+    return auth.handler(c.req.raw);
+});
 
 api.get('/health', (c) => {
     return c.json({
@@ -13,3 +16,4 @@ api.get('/health', (c) => {
 });
 
 api.route('/users', users);
+api.route('/invitations', invitations);

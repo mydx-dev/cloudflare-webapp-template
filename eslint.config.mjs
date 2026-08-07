@@ -112,4 +112,16 @@ export default [
             'max-lines-per-function': 'off',
         },
     },
+    {
+        files: [
+            '**/*.spec.ts',
+            '**/*.spec.tsx',
+            '**/*.test.ts',
+            '**/*.test.tsx',
+        ],
+        rules: {
+            'max-lines-per-function': 'off',
+            '@typescript-eslint/no-explicit-any': 'off',
+        },
+    },
 ];

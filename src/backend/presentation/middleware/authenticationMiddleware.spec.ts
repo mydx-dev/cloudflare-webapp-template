@@ -1,21 +1,22 @@
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AppEnv } from '../../types/app-env';
 import { authenticationMiddleware } from './authenticationMiddleware';
 
-const { createAuthMock, getSessionMock, userHasPermissionMock } = vi.hoisted(
-    () => ({
-        createAuthMock: vi.fn(),
-        getSessionMock: vi.fn(),
-        userHasPermissionMock: vi.fn(),
-    })
-);
-
-vi.mock('../../lib/auth/createAuth', () => ({
-    createAuth: createAuthMock,
-}));
+const getSessionMock = vi.fn();
 
 const createProtectedApp = () => {
-    const app = new Hono<{ Bindings: Env }>();
+    const app = new Hono<AppEnv>();
+    app.use('*', async (c, next) => {
+        c.set('di', {
+            get: () => ({
+                api: {
+                    getSession: getSessionMock,
+                },
+            }),
+        } as unknown as AppEnv['Variables']['di']);
+        await next();
+    });
     app.use('/protected/*', authenticationMiddleware);
     app.get('/protected/ping', (c) => c.json({ status: 'ok' }));
 
@@ -26,15 +27,6 @@ beforeEach(() => {
     getSessionMock.mockResolvedValue({
         session: { id: 'session-1' },
         user: { id: 'user-1', role: 'user' },
-    });
-    userHasPermissionMock.mockResolvedValue({
-        success: true,
-    });
-    createAuthMock.mockReturnValue({
-        api: {
-            getSession: getSessionMock,
-            userHasPermission: userHasPermissionMock,
-        },
     });
 });
 

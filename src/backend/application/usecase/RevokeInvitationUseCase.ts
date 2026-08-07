@@ -1,0 +1,24 @@
+import { InvitationRepository } from '../../infrastructure/repository/InvitationRepository';
+
+export class RevokeInvitationUseCase {
+    constructor(private readonly invitationRepository: InvitationRepository) {}
+
+    async execute(invitationId: string, inviterId: string) {
+        const invitation =
+            await this.invitationRepository.findById(invitationId);
+        const revokedInvitation = invitation.revoke(inviterId);
+
+        await this.invitationRepository.save(revokedInvitation);
+        return {
+            id: revokedInvitation.id,
+            inviterId: revokedInvitation.inviter.id,
+            email: revokedInvitation.invitee.value,
+            status: revokedInvitation.status.value,
+            role: revokedInvitation.role.value,
+            createdAt: revokedInvitation.createdAt,
+            expiredAt: revokedInvitation.expiration.value,
+            acceptedAt: revokedInvitation.acceptedAt,
+            revokedAt: revokedInvitation.revokedAt,
+        };
+    }
+}

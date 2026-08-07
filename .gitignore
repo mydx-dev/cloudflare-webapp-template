@@ -32,3 +32,6 @@ cookies*.txt
 .vitest-attachments
 
 *.stitch.html
+
+# Coverage
+coverage/

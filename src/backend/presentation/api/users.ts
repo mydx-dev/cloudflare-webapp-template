@@ -1,6 +1,7 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { UserNotFoundError } from '../../domain/user/User.errors';
 import type { AppEnv } from '../../types/app-env';
 import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
 import { authorizationMiddleware } from '../middleware/authorizationMiddleware';
@@ -146,4 +147,22 @@ export const users = new Hono<AppEnv>()
 
             return c.json(result);
         }
-    );
+    )
+    .onError((error, c) => {
+        if (error instanceof UserNotFoundError) {
+            return c.json(
+                {
+                    code: 'USER_NOT_FOUND',
+                    message: 'User not found.',
+                },
+                404
+            );
+        }
+
+        return c.json(
+            {
+                error: 'Internal Server Error',
+            },
+            500
+        );
+    });

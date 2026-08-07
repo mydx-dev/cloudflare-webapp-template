@@ -4,17 +4,29 @@
     "main": "src/backend/index.ts",
     "compatibility_date": "2026-07-16",
     "compatibility_flags": ["nodejs_compat"],
+
+    "vars": {
+        "BETTER_AUTH_URL": "https://replace-me.example.com",
+        "SIGN_UP_ENABLED": "true",
+        "PASSWORD_RESET_EMAIL_FROM": "noreply@example.com",
+    },
+
+    "secrets": {
+        "required": ["BETTER_AUTH_SECRET"],
+    },
+
     "d1_databases": [
         {
             "binding": "DB",
             "database_name": "mydx_template-db",
         },
     ],
-    "send_email": [{ "name": "EMAIL" }],
-    "vars": {
-        "PASSWORD_RESET_EMAIL_FROM": "noreply@example.com",
-        "SIGN_UP_ENABLED": "false",
-    },
+
+    "send_email": [
+        {
+            "name": "EMAIL",
+        },
+    ],
 
     "assets": {
         "directory": "./dist",

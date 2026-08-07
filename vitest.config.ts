@@ -10,6 +10,13 @@ export default defineConfig({
         }),
     ],
     test: {
-        include: ['src/backend/**/*.{test,spec}.ts'],
+        exclude: [
+            '**/*.integration.test.ts',
+            '**/*.integration.spec.ts',
+            'node_modules/**',
+        ],
+        coverage: {
+            provider: 'istanbul',
+        },
     },
 });
