@@ -70,9 +70,19 @@ export const invitations = new Hono<AppEnv>()
         authorizationMiddleware({ invitation: ['read'] }),
         async (c) => {
             const invitationId = c.req.param('invitationId');
+
+            const session = await c.var.di.get('auth').api.getSession({
+                headers: c.req.raw.headers,
+            });
+
+            const user = session?.user;
+            if (!user) {
+                return c.json({ message: 'Unauthorized' }, 401);
+            }
+
             const result = await c.var.di
                 .get('detailInvitationUseCase')
-                .execute(invitationId);
+                .execute(invitationId, user.id);
 
             if (!result) {
                 return c.json(
@@ -87,15 +97,81 @@ export const invitations = new Hono<AppEnv>()
         }
     )
     .post(
-        '/revoke',
+        '/:invitationId/revoke',
         zValidator('json', z.object({ invitationId: z.string().min(1) })),
         authorizationMiddleware({ invitation: ['revoke'] }),
         async (c) => {
             const { invitationId } = c.req.valid('json');
 
+            const session = await c.var.di.get('auth').api.getSession({
+                headers: c.req.raw.headers,
+            });
+
+            const user = session?.user;
+            if (!user) {
+                return c.json({ message: 'Unauthorized' }, 401);
+            }
+
             const result = await c.var.di
                 .get('revokeInvitationUseCase')
-                .execute(invitationId);
+                .execute(invitationId, user.id);
+
+            return c.json(result);
+        }
+    )
+    .post(
+        '/',
+        zValidator(
+            'json',
+            z.object({
+                email: z.string().email(),
+                role: z.enum(['admin', 'user']),
+            })
+        ),
+        authorizationMiddleware({ invitation: ['create'] }),
+        async (c) => {
+            const session = await c.var.di.get('auth').api.getSession({
+                headers: c.req.raw.headers,
+            });
+
+            const user = session?.user;
+            if (!user) {
+                return c.json({ message: 'Unauthorized' }, 401);
+            }
+
+            const { email, role } = c.req.valid('json');
+
+            const result = await c.var.di
+                .get('newInvitationUseCase')
+                .execute(user.id, email, role);
+
+            return c.json(result, 201);
+        }
+    )
+    .post(
+        '/:invitationId/resend',
+        zValidator(
+            'param',
+            z.object({
+                invitationId: z.string().min(1),
+            })
+        ),
+        authorizationMiddleware({ invitation: ['resend'] }),
+        async (c) => {
+            const session = await c.var.di.get('auth').api.getSession({
+                headers: c.req.raw.headers,
+            });
+
+            const user = session?.user;
+            if (!user) {
+                return c.json({ message: 'Unauthorized' }, 401);
+            }
+
+            const { invitationId } = c.req.valid('param');
+
+            const result = await c.var.di
+                .get('resendInvitationUseCase')
+                .execute(invitationId, user.id);
 
             return c.json(result);
         }

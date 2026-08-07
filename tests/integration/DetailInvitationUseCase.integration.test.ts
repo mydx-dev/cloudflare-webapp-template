@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { DetailInvitationUseCase } from '../../src/backend/application/usecase/DetailInvitationUseCase';
 import { invitationTable } from '../../src/backend/infrastructure/db/appSchema';
 import { db } from '../../src/backend/infrastructure/db/database';
+import { domainMap } from '../../src/backend/infrastructure/domainMap/DomainMap';
 import { auth } from '../../src/backend/lib/auth/auth.mock';
 
 afterEach(async () => {
@@ -33,9 +34,9 @@ describe('招待詳細を取得する', () => {
             })
             .execute();
 
-        const useCase = new DetailInvitationUseCase(db);
+        const useCase = new DetailInvitationUseCase(db, domainMap);
 
-        const result = await useCase.execute('invitation-id');
+        const result = await useCase.execute('invitation-id', 'inviter-id');
 
         expect(result).toMatchObject({
             id: 'invitation-id',
@@ -47,10 +48,10 @@ describe('招待詳細を取得する', () => {
     });
 
     it('存在しないIDの場合はエラーになる', async () => {
-        const useCase = new DetailInvitationUseCase(db);
+        const useCase = new DetailInvitationUseCase(db, domainMap);
 
-        await expect(useCase.execute('missing-id')).rejects.toThrow(
-            'Invitation not found'
-        );
+        await expect(
+            useCase.execute('missing-id', 'inviter-id')
+        ).rejects.toThrow('Invitation not found');
     });
 });

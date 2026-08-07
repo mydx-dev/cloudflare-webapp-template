@@ -41,12 +41,12 @@ describe('RevokeInvitationUseCase', () => {
             invitationRepository as unknown as InvitationRepository
         );
 
-        const result = await useCase.execute('invitation-id');
+        const result = await useCase.execute('invitation-id', 'inviter-id');
 
         expect(invitationRepository.findById).toHaveBeenCalledWith(
             'invitation-id'
         );
-        expect(invitation.revoke).toHaveBeenCalledOnce();
+        expect(invitation.revoke).toHaveBeenCalledWith('inviter-id');
         expect(invitationRepository.save).toHaveBeenCalledWith(
             revokedInvitation
         );

@@ -37,7 +37,7 @@ describe('招待承認', () => {
         });
 
         const authAccount = {
-            create: vi.fn().mockImplementation(async (params) => {
+            ensure: vi.fn().mockImplementation(async (params) => {
                 await createUser(params);
                 return createdUser;
             }),
@@ -92,7 +92,7 @@ describe('招待承認', () => {
         const createUser = vi.fn();
 
         const authAccount = {
-            create: vi.fn().mockImplementation(async (params) => {
+            ensure: vi.fn().mockImplementation(async (params) => {
                 await createUser(params);
                 return { user: {} };
             }),
@@ -134,7 +134,7 @@ describe('招待承認', () => {
             .mockRejectedValue(new Error('User creation failed'));
 
         const authAccount = {
-            create: vi.fn().mockImplementation(async (params) => {
+            ensure: vi.fn().mockImplementation(async (params) => {
                 await createUser(params);
                 return { user: {} };
             }),

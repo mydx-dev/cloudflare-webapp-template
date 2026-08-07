@@ -16,7 +16,7 @@ export const authAccessStatement = {
         'get',
         'update',
     ],
-    invitation: ['create', 'list', 'read', 'accept', 'revoke'],
+    invitation: ['create', 'list', 'read', 'accept', 'revoke', 'resend'],
 } as const;
 
 export const authAccessControl = createAccessControl(authAccessStatement);
@@ -44,7 +44,7 @@ export const authAccessRoles = {
             'get',
             'update',
         ],
-        invitation: ['create', 'list', 'read', 'revoke'],
+        invitation: ['create', 'list', 'read', 'revoke', 'resend'],
     }),
 } as const;
 

@@ -16,7 +16,7 @@ export class AcceptInvitationUseCase {
 
         const acceptedInvitation = await invitation.accept(token);
 
-        const user = await this.authAccount.create({
+        const user = await this.authAccount.ensure({
             email: invitation.invitee.value,
             name,
             password,

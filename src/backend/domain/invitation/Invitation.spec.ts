@@ -109,7 +109,7 @@ describe('招待を取り消す', () => {
         async (status) => {
             const invitation = await createInvitation(status);
 
-            expect(() => invitation.revoke()).toThrow();
+            expect(() => invitation.revoke('inviter-id')).toThrow();
         }
     );
 
@@ -120,14 +120,14 @@ describe('招待を取り消す', () => {
             new Date(Date.now() - 1000 * 60 * 60)
         );
 
-        expect(() => invitation.revoke()).toThrow();
+        expect(() => invitation.revoke('inviter-id')).toThrow();
     });
 
     it('有効な招待は取り消せる', async () => {
         vi.setSystemTime(new Date('2026-01-02T00:00:00Z'));
         const invitation = await createInvitation();
 
-        const revokedInvitation = invitation.revoke();
+        const revokedInvitation = invitation.revoke('inviter-id');
 
         expect(revokedInvitation.status.value).toBe('revoked');
         expect(revokedInvitation.revokedAt).toEqual(

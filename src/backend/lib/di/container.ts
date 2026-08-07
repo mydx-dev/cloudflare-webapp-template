@@ -9,6 +9,7 @@ import { DetailUserUseCase } from '../../application/usecase/DetailUserUseCase';
 import { ListInvitationUseCase } from '../../application/usecase/ListInvitationUseCase';
 import { ListUserUseCase } from '../../application/usecase/ListUserUseCase';
 import { NewInvitationUseCase } from '../../application/usecase/NewInvitationUseCase';
+import { ResendInvitationUseCase } from '../../application/usecase/ResendInvitationUseCase';
 import { RevokeInvitationUseCase } from '../../application/usecase/RevokeInvitationUseCase';
 import { RevokeUserSessionUseCase } from '../../application/usecase/RevokeUserSessionUseCase';
 import { SetUserRoleUseCase } from '../../application/usecase/SetUserRoleUseCase';
@@ -40,7 +41,7 @@ export const container = baseContainer
         ['db', 'dm'],
         'scoped'
     )
-    .registerClass('authAccount', AuthAccount, ['auth'], 'scoped')
+    .registerClass('authAccount', AuthAccount, ['db', 'auth'], 'scoped')
     .registerClass('listUserUseCase', ListUserUseCase, ['auth'], 'scoped')
     .registerClass('detailUserUseCase', DetailUserUseCase, ['auth'], 'scoped')
     .registerClass('setUserRoleUseCase', SetUserRoleUseCase, ['auth'], 'scoped')
@@ -54,7 +55,7 @@ export const container = baseContainer
         'scoped'
     )
     .registerClass(
-        'createInvitationUseCase',
+        'newInvitationUseCase',
         NewInvitationUseCase,
         ['invitationRepository', 'invitationMail'],
         'scoped'
@@ -68,7 +69,7 @@ export const container = baseContainer
     .registerClass(
         'detailInvitationUseCase',
         DetailInvitationUseCase,
-        ['db'],
+        ['db', 'dm'],
         'scoped'
     )
     .registerClass(
@@ -81,5 +82,11 @@ export const container = baseContainer
         'revokeInvitationUseCase',
         RevokeInvitationUseCase,
         ['invitationRepository'],
+        'scoped'
+    )
+    .registerClass(
+        'resendInvitationUseCase',
+        ResendInvitationUseCase,
+        ['invitationRepository', 'invitationMail'],
         'scoped'
     );

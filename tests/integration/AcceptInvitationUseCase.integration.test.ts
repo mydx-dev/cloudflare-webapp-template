@@ -46,7 +46,7 @@ describe('AcceptInvitationUseCase integration', () => {
 
         // 本物のRepositoryでD1へ保存
         await repository.save(invitation);
-        const authAccount = new AuthAccount(auth);
+        const authAccount = new AuthAccount(db, auth);
 
         const useCase = new AcceptInvitationUseCase(repository, authAccount);
 

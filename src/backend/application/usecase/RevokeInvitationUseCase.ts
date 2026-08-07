@@ -3,10 +3,10 @@ import { InvitationRepository } from '../../infrastructure/repository/Invitation
 export class RevokeInvitationUseCase {
     constructor(private readonly invitationRepository: InvitationRepository) {}
 
-    async execute(invitationId: string) {
+    async execute(invitationId: string, inviterId: string) {
         const invitation =
             await this.invitationRepository.findById(invitationId);
-        const revokedInvitation = invitation.revoke();
+        const revokedInvitation = invitation.revoke(inviterId);
 
         await this.invitationRepository.save(revokedInvitation);
         return {

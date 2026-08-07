@@ -216,7 +216,7 @@ describe('Invitations API', () => {
                 inviterId: admin.id,
             });
 
-            const revoked = invitation.revoke();
+            const revoked = invitation.revoke(invitation.inviter.id);
 
             await invitationRepository.save(revoked);
 
@@ -435,13 +435,16 @@ describe('Invitations API', () => {
 
             headers.set('content-type', 'application/json');
 
-            const response = await app.request('/api/invitations/revoke', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    invitationId: invitation.id,
-                }),
-            });
+            const response = await app.request(
+                `/api/invitations/${invitation.id}/revoke`,
+                {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        invitationId: invitation.id,
+                    }),
+                }
+            );
 
             expect(response.status).toBe(200);
 

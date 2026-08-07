@@ -1,5 +1,3 @@
-src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 有効なメールアドレスを受け入れる
-src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 無効なメールアドレスを拒否する
 src/backend/domain/invitation/Invitation.spec.ts > 招待を作成する > 許可されたロールなら招待を作成できる
 src/backend/domain/invitation/Invitation.spec.ts > 招待を作成する > ロールを指定しない場合は、userロールで招待を作成する
 src/backend/domain/invitation/Invitation.spec.ts > 招待を作成する > トークンはハッシュされていない状態で作成される
@@ -31,3 +29,5 @@ src/backend/domain/invitation/InvitationToken.spec.ts > トークンのハッシ
 src/backend/domain/invitation/InvitationToken.spec.ts > トークンのハッシュ化 > すでにハッシュ化されているトークンをハッシュ化すると、同じトークンが返る
 src/backend/domain/invitation/Inviter.spec.ts > 招待者が実行者であることを保証する > 招待者のIDと実行者のIDが同じ場合はエラーを投げない
 src/backend/domain/invitation/Inviter.spec.ts > 招待者が実行者であることを保証する > 招待者のIDと実行者のIDが異なる場合はエラーを投げる
+src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 有効なメールアドレスを受け入れる
+src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 無効なメールアドレスを拒否する

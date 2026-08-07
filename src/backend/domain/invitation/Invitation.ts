@@ -79,9 +79,10 @@ export class Invitation {
         });
     }
 
-    revoke(): Invitation {
+    revoke(inviterId: string): Invitation {
         this.expiration.ensureActive(new Date());
         this.status.ensurePending();
+        this.inviter.ensureSameAs(inviterId);
 
         return new Invitation({
             ...this,
