@@ -98,10 +98,10 @@ export const invitations = new Hono<AppEnv>()
     )
     .post(
         '/:invitationId/revoke',
-        zValidator('json', z.object({ invitationId: z.string().min(1) })),
+        zValidator('param', z.object({ invitationId: z.string().min(1) })),
         authorizationMiddleware({ invitation: ['revoke'] }),
         async (c) => {
-            const { invitationId } = c.req.valid('json');
+            const { invitationId } = c.req.valid('param');
 
             const session = await c.var.di.get('auth').api.getSession({
                 headers: c.req.raw.headers,
