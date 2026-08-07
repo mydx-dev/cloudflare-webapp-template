@@ -1,4 +1,4 @@
-import { seedLocal } from './seedLocal';
+import { seedLocal } from '../../lib/auth/seedLocal';
 
 export default {
     async fetch(): Promise<Response> {
