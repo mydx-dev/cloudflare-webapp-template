@@ -440,9 +440,6 @@ describe('Invitations API', () => {
                 {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({
-                        invitationId: invitation.id,
-                    }),
                 }
             );
 
