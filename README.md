@@ -256,6 +256,26 @@ pnpm deploy
 
 ---
 
+# シード
+
+```bash
+pnpm install
+pnpm db:migrate:local
+pnpm db:seed:local
+pnpm dev
+```
+
+初回のみローカルデータベースへ開発用ユーザーを作成します。
+
+| Role    | Email               | Password     |
+| ------- | ------------------- | ------------ |
+| Admin   | admin@example.com   | Password123! |
+| Manager | manager@example.com | Password123! |
+| User    | user@example.com    | Password123! |
+
+`pnpm db:seed:local` は冪等です。同じユーザーが既に存在する場合は再作成されません。
+---
+
 # ディレクトリ構成
 
 ```text
