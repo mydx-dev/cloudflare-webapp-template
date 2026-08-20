@@ -1,48 +1,29 @@
-export abstract class InvitationError extends Error {
-    protected constructor(message: string) {
-        super(message);
-        this.name = new.target.name;
-    }
-}
+import { DomainError } from '../shared/DomainError';
 
-export class InvitationExpiredError extends InvitationError {
-    constructor() {
-        super('Invitation has expired.');
-    }
-}
+export class InvitationExpiredError extends DomainError(
+    'Invitation has expired.'
+) {}
 
-export class InvitationRevokedError extends InvitationError {
-    constructor() {
-        super('Invitation has been revoked.');
-    }
-}
+export class InvitationRevokedError extends DomainError(
+    'Invitation has been revoked.'
+) {}
 
-export class InvitationAlreadyAcceptedError extends InvitationError {
-    constructor() {
-        super('Invitation has already been accepted.');
-    }
-}
+export class InvitationAlreadyAcceptedError extends DomainError(
+    'Invitation has already been accepted.'
+) {}
 
-export class InvalidInvitationTokenError extends InvitationError {
-    constructor() {
-        super('Invitation token is invalid.');
-    }
-}
+export class InvalidInvitationTokenError extends DomainError(
+    'Invitation token is invalid.'
+) {}
 
-export class InvalidInvitationRoleError extends InvitationError {
-    constructor() {
-        super('Invitation role is invalid.');
-    }
-}
+export class InvalidInvitationRoleError extends DomainError(
+    'Invitation role is invalid.'
+) {}
 
-export class InvitationNotFoundError extends InvitationError {
-    constructor() {
-        super('Invitation not found.');
-    }
-}
+export class InvitationNotFoundError extends DomainError(
+    'Invitation not found.'
+) {}
 
-export class InviterMismatchError extends InvitationError {
-    constructor() {
-        super('The inviter and executor do not match.');
-    }
-}
+export class InviterMismatchError extends DomainError(
+    'The inviter and executor do not match.'
+) {}

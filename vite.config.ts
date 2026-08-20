@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
     root: fileURLToPath(new URL('./src/frontend', import.meta.url)),
-
+    envDir: fileURLToPath(new URL('.', import.meta.url)),
     plugins: [react(), tailwindcss()],
 
     server: {

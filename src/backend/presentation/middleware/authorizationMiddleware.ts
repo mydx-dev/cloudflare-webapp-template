@@ -1,11 +1,10 @@
-import type { MiddlewareHandler } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import type { AuthPermission } from '../../../shared/auth/accessControl';
 import { AppEnv } from '../../types/app-env';
+import { forbiddenErrorResponse } from '../http/forbiddenErrorResponse';
 
-export const authorizationMiddleware = (
-    permissions: AuthPermission
-): MiddlewareHandler<AppEnv> => {
-    return async (c, next) => {
+export const authorizationMiddleware = (permissions: AuthPermission) =>
+    createMiddleware<AppEnv>(async (c, next) => {
         const auth = c.var.di.get('auth');
         const result = await auth.api.userHasPermission({
             headers: c.req.raw.headers,
@@ -15,14 +14,8 @@ export const authorizationMiddleware = (
         });
 
         if (!result.success) {
-            return c.json(
-                {
-                    message: 'Forbidden',
-                },
-                403
-            );
+            return forbiddenErrorResponse(c);
         }
 
         await next();
-    };
-};
+    });

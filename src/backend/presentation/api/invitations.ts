@@ -1,19 +1,23 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import {
-    InvalidInvitationRoleError,
-    InvalidInvitationTokenError,
-    InvitationAlreadyAcceptedError,
-    InvitationExpiredError,
-    InvitationNotFoundError,
-    InvitationRevokedError,
-    InviterMismatchError,
-} from '../../domain/invitation/Invitation.errors';
 import type { AppEnv } from '../../types/app-env';
+import { applicationErrorResponse } from '../http/applicationErrorResponse';
+import { internalServerErrorResponse } from '../http/internalServerErrorResponse';
+import { validationErrorResponse } from '../http/validationErrorResponse';
 import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
 import { authorizationMiddleware } from '../middleware/authorizationMiddleware';
 import { diMiddleware } from '../middleware/diMiddleware';
+
+export const invitationErrorCodes = {
+    INVITATION_NOT_FOUND: 404,
+    INVALID_INVITATION_TOKEN: 400,
+    INVALID_INVITATION_ROLE: 400,
+    INVITATION_EXPIRED: 409,
+    INVITATION_REVOKED: 409,
+    INVITATION_ALREADY_ACCEPTED: 409,
+    INVITER_MISMATCH: 403,
+} as const;
 
 export const invitations = new Hono<AppEnv>()
     .use('*', diMiddleware)
@@ -25,98 +29,112 @@ export const invitations = new Hono<AppEnv>()
                 token: z.string().min(1),
                 name: z.string().min(1),
                 password: z.string().min(1),
-            })
+            }),
+            (result, c) => validationErrorResponse(result, c)
         ),
         async (c) => {
             const { token, name, password } = c.req.valid('json');
+            const useCase = c.var.di.get('acceptInvitationUseCase');
 
-            const result = await c.var.di
-                .get('acceptInvitationUseCase')
-                .execute(token, name, password);
+            try {
+                const result = await useCase.execute(token, name, password);
 
-            return c.json(result);
+                return c.json(result, 200);
+            } catch (error) {
+                return (
+                    applicationErrorResponse(
+                        error,
+                        c,
+                        useCase.errorCodes,
+                        invitationErrorCodes
+                    ) ?? internalServerErrorResponse(c)
+                );
+            }
         }
     )
     .use('*', authenticationMiddleware)
     .get(
         '/',
-        zValidator('query', z.object({})),
+        zValidator('query', z.object({}), (result, c) =>
+            validationErrorResponse(result, c)
+        ),
         authorizationMiddleware({ invitation: ['list'] }),
         async (c) => {
-            const auth = c.var.di.get('auth');
-            const session = await auth.api.getSession({
-                headers: c.req.raw.headers,
-            });
+            const usecase = c.var.di.get('listInvitationUseCase');
+            try {
+                const result = await usecase.execute(c.var.user.id);
 
-            const user = session?.user;
-            if (!user) {
-                return c.json(
-                    {
-                        message: 'Unauthorized',
-                    },
-                    401
+                return c.json(result, 200);
+            } catch (error) {
+                return (
+                    applicationErrorResponse(
+                        error,
+                        c,
+                        usecase.errorCodes,
+                        invitationErrorCodes
+                    ) ?? internalServerErrorResponse(c)
                 );
             }
-            const result = await c.var.di
-                .get('listInvitationUseCase')
-                .execute(user.id);
-
-            return c.json(result);
         }
     )
     .get(
         '/:invitationId',
-        zValidator('param', z.object({ invitationId: z.string().min(1) })),
+        zValidator(
+            'param',
+            z.object({ invitationId: z.string().min(1) }),
+            (result, c) => validationErrorResponse(result, c)
+        ),
         authorizationMiddleware({ invitation: ['read'] }),
         async (c) => {
-            const invitationId = c.req.param('invitationId');
+            const { invitationId } = c.req.valid('param');
 
-            const session = await c.var.di.get('auth').api.getSession({
-                headers: c.req.raw.headers,
-            });
+            try {
+                const result = await c.var.di
+                    .get('detailInvitationUseCase')
+                    .execute(invitationId, c.var.user.id);
 
-            const user = session?.user;
-            if (!user) {
-                return c.json({ message: 'Unauthorized' }, 401);
-            }
-
-            const result = await c.var.di
-                .get('detailInvitationUseCase')
-                .execute(invitationId, user.id);
-
-            if (!result) {
-                return c.json(
-                    {
-                        message: 'Invitation not found',
-                    },
-                    404
+                return c.json(result, 200);
+            } catch (error) {
+                return (
+                    applicationErrorResponse(
+                        error,
+                        c,
+                        c.var.di.get('detailInvitationUseCase').errorCodes,
+                        invitationErrorCodes
+                    ) ?? internalServerErrorResponse(c)
                 );
             }
-
-            return c.json(result);
         }
     )
     .post(
         '/:invitationId/revoke',
-        zValidator('param', z.object({ invitationId: z.string().min(1) })),
+        zValidator(
+            'param',
+            z.object({ invitationId: z.string().min(1) }),
+            (result, c) => validationErrorResponse(result, c)
+        ),
         authorizationMiddleware({ invitation: ['revoke'] }),
         async (c) => {
             const { invitationId } = c.req.valid('param');
+            const useCase = c.var.di.get('revokeInvitationUseCase');
 
-            const session = await c.var.di.get('auth').api.getSession({
-                headers: c.req.raw.headers,
-            });
+            try {
+                const result = await useCase.execute(
+                    invitationId,
+                    c.var.user.id
+                );
 
-            const user = session?.user;
-            if (!user) {
-                return c.json({ message: 'Unauthorized' }, 401);
+                return c.json(result, 200);
+            } catch (error) {
+                return (
+                    applicationErrorResponse(
+                        error,
+                        c,
+                        useCase.errorCodes,
+                        invitationErrorCodes
+                    ) ?? internalServerErrorResponse(c)
+                );
             }
-
-            const result = await c.var.di
-                .get('revokeInvitationUseCase')
-                .execute(invitationId, user.id);
-
-            return c.json(result);
         }
     )
     .post(
@@ -126,26 +144,32 @@ export const invitations = new Hono<AppEnv>()
             z.object({
                 email: z.string().email(),
                 role: z.enum(['admin', 'user']),
-            })
+            }),
+            (result, c) => validationErrorResponse(result, c)
         ),
         authorizationMiddleware({ invitation: ['create'] }),
         async (c) => {
-            const session = await c.var.di.get('auth').api.getSession({
-                headers: c.req.raw.headers,
-            });
-
-            const user = session?.user;
-            if (!user) {
-                return c.json({ message: 'Unauthorized' }, 401);
-            }
-
             const { email, role } = c.req.valid('json');
+            const useCase = c.var.di.get('newInvitationUseCase');
 
-            const result = await c.var.di
-                .get('newInvitationUseCase')
-                .execute(user.id, email, role);
+            try {
+                const result = await useCase.execute(
+                    c.var.user.id,
+                    email,
+                    role
+                );
 
-            return c.json(result, 201);
+                return c.json(result, 201);
+            } catch (error) {
+                return (
+                    applicationErrorResponse(
+                        error,
+                        c,
+                        useCase.errorCodes,
+                        invitationErrorCodes
+                    ) ?? internalServerErrorResponse(c)
+                );
+            }
         }
     )
     .post(
@@ -154,93 +178,44 @@ export const invitations = new Hono<AppEnv>()
             'param',
             z.object({
                 invitationId: z.string().min(1),
-            })
+            }),
+            (result, c) => validationErrorResponse(result, c)
         ),
         authorizationMiddleware({ invitation: ['resend'] }),
         async (c) => {
-            const session = await c.var.di.get('auth').api.getSession({
-                headers: c.req.raw.headers,
-            });
-
-            const user = session?.user;
-            if (!user) {
-                return c.json({ message: 'Unauthorized' }, 401);
-            }
-
             const { invitationId } = c.req.valid('param');
+            const useCase = c.var.di.get('resendInvitationUseCase');
+            try {
+                const result = await useCase.execute(
+                    invitationId,
+                    c.var.user.id
+                );
 
-            const result = await c.var.di
-                .get('resendInvitationUseCase')
-                .execute(invitationId, user.id);
+                return c.json(result, 200);
+            } catch (error) {
+                console.log('Error in resend invitation:', error);
 
-            return c.json(result);
+                const response = applicationErrorResponse(
+                    error,
+                    c,
+                    useCase.errorCodes,
+                    invitationErrorCodes
+                );
+
+                console.log('applicationErrorResponse:', response?.status);
+
+                if (response) {
+                    return response;
+                }
+
+                const internalResponse = internalServerErrorResponse(c);
+
+                console.log(
+                    'internalServerErrorResponse:',
+                    internalResponse.status
+                );
+
+                return internalResponse;
+            }
         }
-    )
-    .onError((error, c) => {
-        if (error instanceof InvitationNotFoundError) {
-            return c.json(
-                {
-                    code: 'INVITATION_NOT_FOUND',
-                    message: 'Invitation not found.',
-                },
-                404
-            );
-        }
-
-        if (error instanceof InvalidInvitationTokenError) {
-            return c.json(
-                {
-                    code: 'INVALID_INVITATION_TOKEN',
-                    message: 'Invitation token is invalid.',
-                },
-                400
-            );
-        }
-
-        if (error instanceof InvalidInvitationRoleError) {
-            return c.json(
-                {
-                    code: 'INVALID_INVITATION_ROLE',
-                    message: 'Invitation role is invalid.',
-                },
-                400
-            );
-        }
-
-        if (
-            error instanceof InvitationExpiredError ||
-            error instanceof InvitationRevokedError ||
-            error instanceof InvitationAlreadyAcceptedError
-        ) {
-            return c.json(
-                {
-                    code:
-                        error instanceof InvitationExpiredError
-                            ? 'INVITATION_EXPIRED'
-                            : error instanceof InvitationRevokedError
-                              ? 'INVITATION_REVOKED'
-                              : 'INVITATION_ALREADY_ACCEPTED',
-                    message: error.message,
-                },
-                409
-            );
-        }
-
-        if (error instanceof InviterMismatchError) {
-            return c.json(
-                {
-                    code: 'INVITER_MISMATCH',
-                    message: 'Forbidden.',
-                },
-                403
-            );
-        }
-
-        return c.json(
-            {
-                code: 'INTERNAL_SERVER_ERROR',
-                message: 'Internal server error.',
-            },
-            500
-        );
-    });
+    );

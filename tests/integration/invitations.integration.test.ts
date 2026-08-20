@@ -131,6 +131,10 @@ describe('Invitations API', () => {
 
             const accepted = await invitationRepository.findById(invitation.id);
 
+            if (!accepted) {
+                throw new Error('招待が見つかりません');
+            }
+
             expect(accepted.status.value).toBe('accepted');
             expect(accepted.acceptedAt).not.toBeNull();
 
@@ -171,11 +175,11 @@ describe('Invitations API', () => {
 
             const response = await acceptInvitation('invalid-token');
 
-            expect(response.status).toBe(404);
+            expect(response.status).toBe(400);
 
             await expect(response.json()).resolves.toEqual({
-                code: 'INVITATION_NOT_FOUND',
-                message: 'Invitation not found.',
+                code: 'INVALID_INVITATION_TOKEN',
+                message: 'Invitation token is invalid.',
             });
             await test.deleteUser(admin.id);
         });
@@ -248,10 +252,6 @@ describe('Invitations API', () => {
             });
 
             const firstResponse = await acceptInvitation(plainToken);
-            console.log({
-                status: firstResponse.status,
-                body: await firstResponse.clone().text(),
-            });
 
             expect(firstResponse.status).toBe(200);
 
@@ -446,6 +446,10 @@ describe('Invitations API', () => {
             expect(response.status).toBe(200);
 
             const revoked = await invitationRepository.findById(invitation.id);
+
+            if (!revoked) {
+                throw new Error('招待が見つかりません');
+            }
 
             expect(revoked.status.value).toBe('revoked');
             expect(revoked.revokedAt).not.toBeNull();

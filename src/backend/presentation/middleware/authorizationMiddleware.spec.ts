@@ -63,7 +63,10 @@ describe('authorizationMiddleware', () => {
         );
 
         expect(res.status).toBe(403);
-        expect(await res.json()).toEqual({ message: 'Forbidden' });
+        expect(await res.json()).toEqual({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to access this resource.',
+        });
     });
 
     it('権限がある場合は後続の handler を実行する', async () => {

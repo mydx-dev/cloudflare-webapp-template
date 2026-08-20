@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Invitation } from '../../src/backend/domain/invitation/Invitation';
-import { InvitationNotFoundError } from '../../src/backend/domain/invitation/Invitation.errors';
 import { InvitationToken } from '../../src/backend/domain/invitation/InvitationToken';
 import { invitationTable } from '../../src/backend/infrastructure/db/appSchema';
 import { db } from '../../src/backend/infrastructure/db/database';
@@ -157,9 +156,8 @@ describe('招待の復元', () => {
         expect(invitation?.revokedAt).toBeNull();
     });
 
-    it('見つからない場合は、エラーを返す', async () => {
-        await expect(repository.findById('non-existent-id')).rejects.toThrow(
-            InvitationNotFoundError
-        );
+    it('見つからない場合は、nullを返す', async () => {
+        const invitation = await repository.findById('non-existent-id');
+        expect(invitation).toBeNull();
     });
 });

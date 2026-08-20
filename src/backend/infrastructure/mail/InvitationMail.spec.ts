@@ -66,7 +66,7 @@ describe('招待メール', () => {
 
             it('招待リンクが含まれている', () => {
                 expect(mail.text).toContain(
-                    `${baseUrl}${routes.invitation.accept.path}`
+                    `${baseUrl}${routes.invitation.accept}`
                 );
             });
 
@@ -81,10 +81,10 @@ describe('招待メール', () => {
                 const mail = sendEmail.send.mock.calls[1][0];
 
                 expect(mail.text).toContain(
-                    `${baseUrl}${routes.invitation.accept.path}`
+                    `${baseUrl}${routes.invitation.accept}`
                 );
                 expect(mail.text).not.toContain(
-                    `${baseUrl}/${routes.invitation.accept.path}`
+                    `${baseUrl}/${routes.invitation.accept}`
                 );
             });
         });

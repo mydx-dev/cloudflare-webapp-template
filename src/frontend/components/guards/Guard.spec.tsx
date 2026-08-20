@@ -6,13 +6,17 @@ import { AuthGuard } from './AuthGuard';
 import { GuestOnlyGuard } from './GuestOnlyGuard';
 import { PermissionGuard } from './PermissionGuard';
 
-const { useSessionMock } = vi.hoisted(() => ({
+const { useSessionMock, checkRolePermissionMock } = vi.hoisted(() => ({
     useSessionMock: vi.fn(),
+    checkRolePermissionMock: vi.fn(),
 }));
 
 vi.mock('../../lib/authClient', () => ({
     authClient: {
         useSession: useSessionMock,
+        admin: {
+            checkRolePermission: checkRolePermissionMock,
+        },
     },
 }));
 
@@ -57,8 +61,9 @@ beforeEach(() => {
         data: null,
         isPending: false,
     });
-});
 
+    checkRolePermissionMock.mockReturnValue(false);
+});
 afterEach(() => {
     cleanup();
     vi.clearAllMocks();
@@ -110,6 +115,12 @@ describe('GuestOnlyGuard', () => {
 
         expect(await screen.findByText('初期画面')).toBeVisible();
     });
+
+    it('未認証ユーザーは認証画面を表示する', () => {
+        renderRoutes(['/sign-in']);
+
+        expect(screen.getByText('ログイン画面')).toBeVisible();
+    });
 });
 
 describe('PermissionGuard', () => {
@@ -120,6 +131,8 @@ describe('PermissionGuard', () => {
             },
             isPending: false,
         });
+
+        checkRolePermissionMock.mockReturnValue(true);
 
         renderRoutes(['/users/edit']);
 
@@ -134,6 +147,8 @@ describe('PermissionGuard', () => {
             isPending: false,
         });
 
+        checkRolePermissionMock.mockReturnValue(true);
+
         renderRoutes(['/users/edit']);
 
         expect(screen.getByText('編集画面')).toBeVisible();
@@ -146,6 +161,8 @@ describe('PermissionGuard', () => {
             },
             isPending: false,
         });
+
+        checkRolePermissionMock.mockReturnValue(false);
 
         renderRoutes(['/users/edit']);
 

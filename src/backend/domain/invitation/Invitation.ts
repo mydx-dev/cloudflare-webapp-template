@@ -91,9 +91,13 @@ export class Invitation {
         });
     }
 
-    async ensureSendable(inviterId: string): Promise<void> {
+    resend(inviterId: string): Invitation {
         this.inviter.ensureSameAs(inviterId);
-        this.expiration.ensureActive(new Date());
         this.status.ensurePending();
+        this.expiration.ensureActive(new Date());
+        return new Invitation({
+            ...this,
+            token: InvitationToken.generate(),
+        });
     }
 }

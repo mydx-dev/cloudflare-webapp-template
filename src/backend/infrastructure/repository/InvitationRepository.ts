@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
 import type { Invitation } from '../../domain/invitation/Invitation';
-import { InvitationNotFoundError } from '../../domain/invitation/Invitation.errors';
 import type { InvitationToken } from '../../domain/invitation/InvitationToken';
 import { invitationTable } from '../db/appSchema';
 import { Database } from '../db/database';
@@ -19,7 +18,7 @@ export class InvitationRepository {
             .get();
 
         if (!record) {
-            throw new InvitationNotFoundError();
+            return null;
         }
 
         return this.dm.invitation.toDomain(record);
@@ -34,7 +33,7 @@ export class InvitationRepository {
             .get();
 
         if (!record) {
-            throw new InvitationNotFoundError();
+            return null;
         }
 
         return this.dm.invitation.toDomain(record);

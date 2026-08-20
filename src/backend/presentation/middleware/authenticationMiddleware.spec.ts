@@ -41,7 +41,10 @@ describe('authenticationMiddleware', () => {
         );
 
         expect(res.status).toBe(401);
-        expect(await res.json()).toEqual({ message: 'Unauthorized' });
+        expect(await res.json()).toEqual({
+            code: 'UNAUTHORIZED',
+            message: 'You are not authorized to access this resource.',
+        });
     });
 
     it('セッションがある場合は後続の handler を実行する', async () => {

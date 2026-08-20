@@ -2,32 +2,43 @@ import { eq } from 'drizzle-orm';
 import { invitationTable } from '../../infrastructure/db/appSchema';
 import { Database } from '../../infrastructure/db/database';
 import { DomainMap } from '../../infrastructure/domainMap/DomainMap';
+import { ApplicationError } from '../dto/ApplicationError';
+import { InvitationOutput } from '../invitation/InvitationOutput';
+import { UseCase } from './UseCase';
 
-export class ListInvitationUseCase {
+export class ListInvitationUseCase implements UseCase {
+    private static readonly errors = [] as const;
+    public readonly errorCodes = ApplicationError.codes(
+        ListInvitationUseCase.errors
+    );
     constructor(
         private readonly db: Database,
         private readonly dm: DomainMap
     ) {}
 
-    async execute(inviterId: string) {
-        const records = await this.db
-            .select()
-            .from(invitationTable)
-            .where(eq(invitationTable.inviterId, inviterId))
-            .all();
-        const invitations = records.map((record) =>
-            this.dm.invitation.toDomain(record)
-        );
-        return invitations.map((invitation) => ({
-            id: invitation.id,
-            inviterId: invitation.inviter.id,
-            email: invitation.invitee.value,
-            status: invitation.status.value,
-            role: invitation.role.value,
-            createdAt: invitation.createdAt,
-            expiredAt: invitation.expiration.value,
-            acceptedAt: invitation.acceptedAt,
-            revokedAt: invitation.revokedAt,
-        }));
+    async execute(inviterId: string): Promise<InvitationOutput[]> {
+        try {
+            const records = await this.db
+                .select()
+                .from(invitationTable)
+                .where(eq(invitationTable.inviterId, inviterId))
+                .all();
+            const invitations = records.map((record) =>
+                this.dm.invitation.toDomain(record)
+            );
+            return invitations.map((invitation) => ({
+                id: invitation.id,
+                inviterId: invitation.inviter.id,
+                email: invitation.invitee.value,
+                status: invitation.status.value,
+                role: invitation.role.value,
+                createdAt: invitation.createdAt,
+                expiredAt: invitation.expiration.value,
+                acceptedAt: invitation.acceptedAt,
+                revokedAt: invitation.revokedAt,
+            }));
+        } catch (error) {
+            throw new ApplicationError(error, ListInvitationUseCase.errors);
+        }
     }
 }

@@ -1,3 +1,5 @@
+src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 有効なメールアドレスを受け入れる
+src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 無効なメールアドレスを拒否する
 src/backend/domain/invitation/Invitation.spec.ts > 招待を作成する > 許可されたロールなら招待を作成できる
 src/backend/domain/invitation/Invitation.spec.ts > 招待を作成する > ロールを指定しない場合は、userロールで招待を作成する
 src/backend/domain/invitation/Invitation.spec.ts > 招待を作成する > トークンはハッシュされていない状態で作成される
@@ -8,10 +10,10 @@ src/backend/domain/invitation/Invitation.spec.ts > 招待を承認する > 有�
 src/backend/domain/invitation/Invitation.spec.ts > 招待を取り消す > \"accepted\"または\"revoked\"ステータスの場合は取り消せない
 src/backend/domain/invitation/Invitation.spec.ts > 招待を取り消す > 有効期限が切れている場合は取り消せない
 src/backend/domain/invitation/Invitation.spec.ts > 招待を取り消す > 有効な招待は取り消せる
-src/backend/domain/invitation/Invitation.spec.ts > 招待が送信できることを保証する > 招待の作成者と実行者が異なる場合は送信できない
-src/backend/domain/invitation/Invitation.spec.ts > 招待が送信できることを保証する > 有効期限が切れている場合は送信できない
-src/backend/domain/invitation/Invitation.spec.ts > 招待が送信できることを保証する > ステータスが\"accepted\"または\"revoked\"の場合は送信できない
-src/backend/domain/invitation/Invitation.spec.ts > 招待が送信できることを保証する > 正常な招待は送信できる
+src/backend/domain/invitation/Invitation.spec.ts > 再送する > 招待の作成者と実行者が異なる場合は再送できない
+src/backend/domain/invitation/Invitation.spec.ts > 再送する > 有効期限が切れている場合は再送できない
+src/backend/domain/invitation/Invitation.spec.ts > 再送する > ステータスが\"accepted\"または\"revoked\"の場合は再送できない
+src/backend/domain/invitation/Invitation.spec.ts > 再送する > 正常な招待はトークンを再発行した上で再送できる
 src/backend/domain/invitation/InvitationExpiration.spec.ts > 有効期限の設定 > 有効期限は作成日時から7日後に設定される
 src/backend/domain/invitation/InvitationExpiration.spec.ts > 有効期限の設定 > 有効期限を超えるととエラーになる
 src/backend/domain/invitation/InvitationRole.spec.ts > 招待ロールの生成 > ロールが\"user\"または\"admin\"または\"manager\"の場合は正常に生成される
@@ -29,5 +31,3 @@ src/backend/domain/invitation/InvitationToken.spec.ts > トークンのハッシ
 src/backend/domain/invitation/InvitationToken.spec.ts > トークンのハッシュ化 > すでにハッシュ化されているトークンをハッシュ化すると、同じトークンが返る
 src/backend/domain/invitation/Inviter.spec.ts > 招待者が実行者であることを保証する > 招待者のIDと実行者のIDが同じ場合はエラーを投げない
 src/backend/domain/invitation/Inviter.spec.ts > 招待者が実行者であることを保証する > 招待者のIDと実行者のIDが異なる場合はエラーを投げる
-src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 有効なメールアドレスを受け入れる
-src/backend/domain/shared/EmailAddress.spec.ts > EmailAddress > 無効なメールアドレスを拒否する

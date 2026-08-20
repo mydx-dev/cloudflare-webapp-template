@@ -1,26 +1,22 @@
-import type { MiddlewareHandler } from 'hono';
-import { AppEnv } from '../../types/app-env';
+import { createMiddleware } from 'hono/factory';
+import type { AppEnv } from '../../types/app-env';
+import { unauthorizedErrorResponse } from '../http/unauthorizedErrorResponse';
 
-export const authenticationMiddleware: MiddlewareHandler<AppEnv> = async (
-    c,
-    next
-) => {
-    const auth = c.var.di.get('auth');
-    const session = await auth.api.getSession({
-        headers: c.req.raw.headers,
-    });
+export const authenticationMiddleware = createMiddleware<AppEnv>(
+    async (c, next) => {
+        const auth = c.var.di.get('auth');
 
-    if (!session) {
-        return c.json(
-            {
-                message: 'Unauthorized',
-            },
-            401
-        );
+        const session = await auth.api.getSession({
+            headers: c.req.raw.headers,
+        });
+
+        if (!session) {
+            return unauthorizedErrorResponse(c);
+        }
+
+        c.set('user', session.user);
+        c.set('session', session.session);
+
+        await next();
     }
-
-    c.set('user', session.user);
-    c.set('session', session.session);
-
-    await next();
-};
+);

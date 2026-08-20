@@ -25,7 +25,7 @@ ${appConfig.name} への招待が届いています。
 
 以下のリンクからアカウント登録を完了してください。
 
-${normalizedBaseUrl}${routes.invitation.accept.path}?token=${invitation.token.value}
+${normalizedBaseUrl}${routes.invitation.accept}?token=${invitation.token.value}
 
 この招待リンクの有効期限は ${expirationText} です。本日より7日間有効です。
 有効期限を過ぎた場合は、管理者へ再招待をご依頼ください。

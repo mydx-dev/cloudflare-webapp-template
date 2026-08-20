@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EmailAddress } from '../shared/EmailAddress';
 import { Invitation } from './Invitation';
+import {
+    InvitationExpiredError,
+    InviterMismatchError,
+} from './Invitation.errors';
 import { InvitationExpiration } from './InvitationExpiration';
 import { InvitationRole } from './InvitationRole';
 import { InvitationStatus } from './InvitationStatus';
@@ -136,39 +140,40 @@ describe('招待を取り消す', () => {
     });
 });
 
-describe('招待が送信できることを保証する', () => {
-    it('招待の作成者と実行者が異なる場合は送信できない', async () => {
+describe('再送する', () => {
+    it('招待の作成者と実行者が異なる場合は再送できない', async () => {
         const invitation = await createInvitation();
 
-        await expect(
-            invitation.ensureSendable('different-inviter-id')
-        ).rejects.toThrow();
+        expect(() => invitation.resend('different-inviter-id')).toThrow(
+            InviterMismatchError
+        );
     });
 
-    it('有効期限が切れている場合は送信できない', async () => {
+    it('有効期限が切れている場合は再送できない', async () => {
         vi.setSystemTime(new Date('2024-01-01T00:00:00Z'));
         const invitation = await createInvitation(
             'pending',
             new Date(Date.now() - 1000 * 60 * 60)
         );
 
-        await expect(invitation.ensureSendable('inviter-id')).rejects.toThrow();
+        expect(() => invitation.resend('inviter-id')).toThrow(
+            InvitationExpiredError
+        );
     });
 
     it.each(['accepted', 'revoked'] as const)(
-        'ステータスが"accepted"または"revoked"の場合は送信できない',
+        'ステータスが"accepted"または"revoked"の場合は再送できない',
         async (status) => {
             const invitation = await createInvitation(status);
 
-            await expect(
-                invitation.ensureSendable('inviter-id')
-            ).rejects.toThrow();
+            expect(() => invitation.resend('inviter-id')).toThrow();
         }
     );
-    it('正常な招待は送信できる', async () => {
+    it('正常な招待はトークンを再発行した上で再送できる', async () => {
         vi.setSystemTime(new Date('2026-01-02T00:00:00.000Z'));
         const invitation = await createInvitation();
 
-        expect(invitation.ensureSendable('inviter-id'));
+        const resentInvitation = invitation.resend('inviter-id');
+        expect(resentInvitation.token.value).not.toBe(invitation.token.value);
     });
 });

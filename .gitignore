@@ -35,3 +35,5 @@ cookies*.txt
 
 # Coverage
 coverage/
+
+**/__screenshots__/*
