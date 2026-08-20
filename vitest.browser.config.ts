@@ -11,11 +11,20 @@ export default mergeConfig(
                 provider: playwright(),
                 instances: [{ browser: 'chromium' }],
                 headless: true,
+                api: {
+                    host: '127.0.0.1',
+                    port: Number(process.env.TEST_FRONT_PORT),
+                    strictPort: true,
+                },
             },
         },
         server: {
-            port: 63315,
-            strictPort: true,
+            proxy: {
+                '/api': {
+                    target: process.env.TEST_API_URL,
+                    changeOrigin: true,
+                },
+            },
         },
     })
 );

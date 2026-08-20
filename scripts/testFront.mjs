@@ -1,31 +1,32 @@
-import { execSync, spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
+import { rmSync } from 'node:fs';
+import net from 'node:net';
+import { seedUsers } from './seedLocal.mjs';
 
-const port = 8787;
-const baseUrl = `http://127.0.0.1:${port}`;
+const persistTo = '.wrangler/test-front';
+
+const getFreePort = () =>
+    new Promise((resolve, reject) => {
+        const server = net.createServer();
+
+        server.once('error', reject);
+
+        server.listen(0, '127.0.0.1', () => {
+            const address = server.address();
+
+            if (!address || typeof address === 'string') {
+                server.close();
+                reject(new Error('Failed to get free port.'));
+                return;
+            }
+
+            server.close(() => resolve(address.port));
+        });
+    });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const killPort = () => {
-    try {
-        const pid = execSync(`lsof -ti :${port}`, {
-            encoding: 'utf8',
-        }).trim();
-
-        if (!pid) {
-            return;
-        }
-
-        for (const processId of pid.split('\n')) {
-            process.kill(Number(processId), 'SIGTERM');
-        }
-
-        console.log(`[test:front] stopped process on :${port}`);
-    } catch {
-        // 何も起動していなければ何もしない
-    }
-};
-
-const waitForWorker = async () => {
+const waitForWorker = async (baseUrl) => {
     for (let i = 0; i < 50; i++) {
         try {
             const response = await fetch(`${baseUrl}/api/health`);
@@ -39,20 +40,61 @@ const waitForWorker = async () => {
         await sleep(200);
     }
 
-    throw new Error('Worker did not start.');
+    throw new Error('[test:front] Worker did not start.');
 };
 
-killPort();
+const stop = (child) => {
+    if (!child.pid) {
+        return;
+    }
 
-const worker = spawn(
+    try {
+        child.kill('SIGTERM');
+    } catch {}
+};
+
+rmSync(persistTo, {
+    recursive: true,
+    force: true,
+});
+
+execFileSync(
+    'pnpm',
+    [
+        'wrangler',
+        'd1',
+        'migrations',
+        'apply',
+        'DB',
+        '--local',
+        '--persist-to',
+        persistTo,
+    ],
+    {
+        stdio: 'inherit',
+    }
+);
+
+const seedWorkerPort = await getFreePort();
+const seedWorkerOrigin = `http://127.0.0.1:${seedWorkerPort}`;
+
+const seedWorker = spawn(
     'pnpm',
     [
         'wrangler',
         'dev',
+        '--ip',
+        '127.0.0.1',
         '--port',
+        String(seedWorkerPort),
+        '--persist-to',
+        persistTo,
         '--var',
-        'TRUSTED_ORIGINS:http://localhost:5173,http://localhost:63315',
-        String(port),
+        `BETTER_AUTH_URL:${seedWorkerOrigin}`,
+        '--var',
+        'SIGN_UP_ENABLED:true',
+        '--var',
+        `TRUSTED_ORIGINS:${seedWorkerOrigin}`,
     ],
     {
         stdio: 'inherit',
@@ -60,13 +102,58 @@ const worker = spawn(
 );
 
 try {
-    await waitForWorker();
+    await waitForWorker(seedWorkerOrigin);
+
+    await seedUsers({
+        baseUrl: seedWorkerOrigin,
+        persistTo,
+    });
+} finally {
+    stop(seedWorker);
+}
+
+const workerPort = await getFreePort();
+const frontPort = await getFreePort();
+
+const workerOrigin = `http://127.0.0.1:${workerPort}`;
+const frontOrigin = `http://127.0.0.1:${frontPort}`;
+
+const worker = spawn(
+    'pnpm',
+    [
+        'wrangler',
+        'dev',
+        '--ip',
+        '127.0.0.1',
+        '--port',
+        String(workerPort),
+        '--persist-to',
+        persistTo,
+        '--var',
+        `BETTER_AUTH_URL:${workerOrigin}`,
+        '--var',
+        'SIGN_UP_ENABLED:false',
+        '--var',
+        `TRUSTED_ORIGINS:${frontOrigin}`,
+    ],
+    {
+        stdio: 'inherit',
+    }
+);
+
+try {
+    await waitForWorker(workerOrigin);
 
     const vitest = spawn(
         'pnpm',
         ['vitest', 'run', '--config', 'vitest.browser.config.ts'],
         {
             stdio: 'inherit',
+            env: {
+                ...process.env,
+                TEST_FRONT_PORT: String(frontPort),
+                TEST_API_URL: workerOrigin,
+            },
         }
     );
 
@@ -78,5 +165,5 @@ try {
         process.exitCode = exitCode ?? 1;
     }
 } finally {
-    worker.kill('SIGTERM');
+    stop(worker);
 }
