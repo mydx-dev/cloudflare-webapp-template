@@ -13,7 +13,7 @@
         "test": "pnpm test:back && pnpm test:front",
         "test:back": "vitest run src/backend --config vitest.config.ts",
         "test:back:watch": "vitest --config vitest.config.ts",
-        "test:front": "vitest run --config vitest.browser.config.ts",
+        "test:front": "node scripts/testFront.mjs",
         "test:front:watch": "vitest --config vitest.browser.config.ts",
         "test:integration": "vitest run --config vitest.integration.config.ts",
         "check": "pnpm spec:generate && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build && pnpm cf:types",
