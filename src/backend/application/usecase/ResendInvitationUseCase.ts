@@ -39,7 +39,7 @@ export class ResendInvitationUseCase implements UseCase {
             }
 
             try {
-                invitation.ensureSendable(inviterId);
+                invitation = invitation.resend(inviterId);
             } catch (error) {
                 if (!(
                     error instanceof InvitationExpiredError ||
@@ -48,16 +48,14 @@ export class ResendInvitationUseCase implements UseCase {
                     throw error;
                 }
 
-                const newInvitation = Invitation.create(
+                invitation = Invitation.create(
                     invitation.invitee.value,
                     invitation.inviter.id,
                     invitation.role.value
                 );
-
-                await this.invitationRepository.save(newInvitation);
-                invitation = newInvitation;
             }
 
+            await this.invitationRepository.save(invitation);
             await this.invitationMail.send(invitation);
 
             return invitation;

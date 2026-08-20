@@ -26,10 +26,10 @@
         "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
         "db:seed:local": "node scripts/seedLocal.mjs",
         "db:setup:local": "pnpm db:migrate:local && pnpm db:seed:local",
-        "spec:generate:domain": "vitest list src/backend/domain --static-parse > docs/DOMAIN_SPEC.md",
-        "spec:generate:application": "vitest list src/backend/application --static-parse > docs/APPLICATION_SPEC.md",
-        "spec:generate:infrastructure": "vitest list src/backend/infrastructure --static-parse > docs/INFRASTRUCTURE_SPEC.md",
-        "spec:generate": "pnpm spec:generate:domain && pnpm spec:generate:application && pnpm spec:generate:infrastructure"
+        "spec:domain": "vitest list src/backend/domain --static-parse > docs/DOMAIN_SPEC.md",
+        "spec:application": "vitest list src/backend/application --static-parse > docs/APPLICATION_SPEC.md",
+        "spec:infrastructure": "vitest list src/backend/infrastructure --static-parse > docs/INFRASTRUCTURE_SPEC.md",
+        "spec": "pnpm spec:domain && pnpm spec:application && pnpm spec:infrastructure"
     },
     "keywords": [],
     "author": "",

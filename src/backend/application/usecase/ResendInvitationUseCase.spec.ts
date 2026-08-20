@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { Invitation } from '../../domain/invitation/Invitation';
 import {
     InvitationAlreadyAcceptedError,
     InvitationExpiredError,
@@ -11,11 +12,12 @@ import { ApplicationError } from '../dto/ApplicationError';
 import { ResendInvitationUseCase } from './ResendInvitationUseCase';
 
 describe('招待を再送する', () => {
-    it('有効な招待は既存の招待をそのまま送信する', async () => {
-        const invitation = {
-            ensureSendable: vi.fn(),
-            id: 'invitation-id',
-        };
+    it('有効な招待はtokenを再発行して再送する', async () => {
+        const invitation = Invitation.create(
+            'test@example.com',
+            'inviter-id',
+            'user'
+        );
 
         const invitationRepository = {
             findById: vi.fn().mockResolvedValue(invitation),
@@ -31,18 +33,21 @@ describe('招待を再送する', () => {
             invitationMail as unknown as InvitationMail
         );
 
+        vi.mocked(invitationRepository.findById).mockResolvedValue(invitation);
+
         const result = await useCase.execute(invitation.id, 'inviter-id');
 
-        expect(result).toBe(invitation);
-        expect(invitationRepository.save).not.toHaveBeenCalled();
-        expect(invitationMail.send).toHaveBeenCalledOnce();
-        expect(invitationMail.send).toHaveBeenCalledWith(invitation);
+        expect(result.id).toBe(invitation.id);
+        expect(result.token.value).not.toBe(invitation.token.value);
+
+        expect(invitationRepository.save).toHaveBeenCalledWith(result);
+        expect(invitationMail.send).toHaveBeenCalledWith(result);
     });
 
     it('期限切れの招待は新しい招待を保存して送信する', async () => {
         const expiredInvitation = {
             id: 'expired-id',
-            ensureSendable: vi.fn().mockImplementation(() => {
+            resend: vi.fn().mockImplementation(() => {
                 throw new InvitationExpiredError();
             }),
             inviter: {
@@ -90,7 +95,7 @@ describe('招待を再送する', () => {
     it('取り消された招待は新しい招待を保存して送信する', async () => {
         const revokedInvitation = {
             id: 'revoked-id',
-            ensureSendable: vi.fn().mockImplementation(() => {
+            resend: vi.fn().mockImplementation(() => {
                 throw new InvitationRevokedError();
             }),
             inviter: {
@@ -138,7 +143,7 @@ describe('招待を再送する', () => {
     it('再発行した招待は元の招待者、被招待者、ロールを引き継ぐ', async () => {
         const originalInvitation = {
             id: 'original-id',
-            ensureSendable: vi.fn().mockImplementation(() => {
+            resend: vi.fn().mockImplementation(() => {
                 throw new InvitationExpiredError();
             }),
             inviter: {
@@ -180,7 +185,7 @@ describe('招待を再送する', () => {
     it('招待者本人以外の場合は再発行せずエラーを送出する', async () => {
         const invitation = {
             id: 'invitation-id',
-            ensureSendable: vi.fn().mockImplementation(() => {
+            resend: vi.fn().mockImplementation(() => {
                 throw new InviterMismatchError();
             }),
             inviter: {
@@ -214,7 +219,7 @@ describe('招待を再送する', () => {
     it('承認済みの場合は再発行せずエラーを送出する', async () => {
         const invitation = {
             id: 'invitation-id',
-            ensureSendable: vi.fn().mockImplementation(() => {
+            resend: vi.fn().mockImplementation(() => {
                 throw new InvitationAlreadyAcceptedError();
             }),
             inviter: {

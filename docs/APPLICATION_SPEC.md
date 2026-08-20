@@ -19,7 +19,7 @@ src/backend/application/usecase/ListUserUseCase.spec.ts > ユーザー一覧を�
 src/backend/application/usecase/ListUserUseCase.spec.ts > ユーザー一覧を取得する > Better Authの取得結果を返す
 src/backend/application/usecase/NewInvitationUseCase.spec.ts > 新規ユーザー招待 > 新規作成した招待をDBに保存し、招待メールを送信して作成結果を返す
 src/backend/application/usecase/NewInvitationUseCase.spec.ts > 新規ユーザー招待 > 招待メールの送信に失敗した場合は処理を成功扱いしない
-src/backend/application/usecase/ResendInvitationUseCase.spec.ts > 招待を再送する > 有効な招待は既存の招待をそのまま送信する
+src/backend/application/usecase/ResendInvitationUseCase.spec.ts > 招待を再送する > 有効な招待はtokenを再発行して再送する
 src/backend/application/usecase/ResendInvitationUseCase.spec.ts > 招待を再送する > 期限切れの招待は新しい招待を保存して送信する
 src/backend/application/usecase/ResendInvitationUseCase.spec.ts > 招待を再送する > 取り消された招待は新しい招待を保存して送信する
 src/backend/application/usecase/ResendInvitationUseCase.spec.ts > 招待を再送する > 再発行した招待は元の招待者、被招待者、ロールを引き継ぐ
