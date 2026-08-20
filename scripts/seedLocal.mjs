@@ -75,15 +75,16 @@ const signUp = async (user) => {
         return;
     }
 
-    const body = await response.text();
+    const body = await response.json();
 
-    if (!response.ok) {
-        throw new Error(
-            `[seed] failed: ${user.email}: ${response.status} ${body}`
-        );
+    if (body.code === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL') {
+        console.log(`[seed] already exists: ${user.email}`);
+        return;
     }
-    // 既存ユーザーなら冪等なので継続
-    console.log(`[seed] response: ${response.status} ${body}`);
+
+    throw new Error(
+        `[seed] failed: ${user.email}: ${response.status} ${JSON.stringify(body)}`
+    );
 };
 
 const updateRole = async (user) => {

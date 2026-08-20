@@ -44,10 +44,6 @@ const waitForWorker = async () => {
 
 killPort();
 
-execSync('pnpm wrangler d1 migrations apply DB --local', {
-    stdio: 'inherit',
-});
-
 const worker = spawn(
     'pnpm',
     [
