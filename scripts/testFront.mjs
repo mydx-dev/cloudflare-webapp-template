@@ -44,9 +44,20 @@ const waitForWorker = async () => {
 
 killPort();
 
-const worker = spawn('pnpm', ['wrangler', 'dev', '--port', String(port)], {
-    stdio: 'inherit',
-});
+const worker = spawn(
+    'pnpm',
+    [
+        'wrangler',
+        'dev',
+        '--port',
+        '--var',
+        'TRUSTED_ORIGINS:http://localhost:5173,http://localhost:63315',
+        String(port),
+    ],
+    {
+        stdio: 'inherit',
+    }
+);
 
 try {
     await waitForWorker();
