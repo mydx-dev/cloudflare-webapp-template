@@ -46,6 +46,10 @@ describe('NewInvitationUseCase integration', () => {
 
             const saved = await invitationRepository.findById(result.id);
 
+            if (!saved) {
+                throw new Error('招待が見つかりません');
+            }
+
             expect(saved.id).toBe(result.id);
             expect(saved.inviter.id).toBe('admin-user-id');
             expect(saved.invitee.value).toBe('invitee@example.com');

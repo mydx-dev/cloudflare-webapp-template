@@ -7,8 +7,9 @@
 
     "vars": {
         "BETTER_AUTH_URL": "https://replace-me.example.com",
-        "SIGN_UP_ENABLED": "true",
+        "SIGN_UP_ENABLED": "false",
         "PASSWORD_RESET_EMAIL_FROM": "noreply@example.com",
+        "TRUSTED_ORIGINS": "https://example.com,https://www.example.com",
     },
 
     "secrets": {

@@ -4,6 +4,7 @@ import { InvitationToken } from '../../domain/invitation/InvitationToken';
 import { AuthAccount } from '../../infrastructure/auth/AuthAccount';
 import { invitationMap } from '../../infrastructure/domainMap/invitationMap';
 import type { InvitationRepository } from '../../infrastructure/repository/InvitationRepository';
+import { ApplicationError } from '../dto/ApplicationError';
 import { AcceptInvitationUseCase } from './AcceptInvitationUseCase';
 
 describe('招待承認', () => {
@@ -105,7 +106,11 @@ describe('招待承認', () => {
 
         await expect(
             useCase.execute('valid-token', 'Test User', 'password')
-        ).rejects.toThrow(InvitationExpiredError);
+        ).rejects.toThrow(
+            new ApplicationError(new InvitationExpiredError(), [
+                InvitationExpiredError,
+            ])
+        );
 
         expect(createUser).not.toHaveBeenCalled();
         expect(repository.save).not.toHaveBeenCalled();

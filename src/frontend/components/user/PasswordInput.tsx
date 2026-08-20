@@ -1,4 +1,6 @@
-import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Eye, EyeOff } from 'lucide-react';
 import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
 
 type PasswordInputProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -16,14 +18,14 @@ export const PasswordInput = ({
         <div className="relative group">
             {/* 左アイコン */}
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">
-                {leftIcon ?? <LockKeyhole />}
+                {leftIcon ?? ''}
             </span>
 
             {/* input */}
-            <input
-                type={showPassword ? 'text' : 'password'}
-                className={`w-full bg-highlight border-none rounded-xl py-4 pl-12 pr-12 focus:ring-2 focus:ring-surface-tint/20 transition-all text-on-surface placeholder:text-outline/50 ${className}`}
+            <Input
                 {...props}
+                className={cn(leftIcon ? 'pl-12' : '', className)}
+                type={showPassword ? 'text' : 'password'}
             />
 
             {/* 右アイコン */}

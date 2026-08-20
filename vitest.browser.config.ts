@@ -13,5 +13,9 @@ export default mergeConfig(
                 headless: true,
             },
         },
+        server: {
+            port: 63315,
+            strictPort: true,
+        },
     })
 );

@@ -1,5 +1,3 @@
-import type { AuthRole } from '../../shared/auth/accessControl';
-import type { ReactNode } from 'react';
 import {
     ArrowLeft,
     ChevronRight,
@@ -9,7 +7,9 @@ import {
     Trash2,
     UserRound,
 } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import type { AuthRole } from '../../shared/auth/accessControl';
 import { PermissionGuard } from '../components/guards/PermissionGuard';
 import { Spinner } from '../components/ui/spinner';
 import {
@@ -19,7 +19,6 @@ import {
     useSetAdminUserRole,
     useToggleAdminUserBan,
 } from '../hooks/useAdminUsers';
-import { AdminLayout } from '../layouts/admin/AdminLayout';
 import type { AdminSession, AdminUser } from '../lib/adminUsersClient';
 
 const roleOptions: Array<{ label: string; value: AuthRole }> = [
@@ -399,51 +398,49 @@ export const UserDetailPage = () => {
     };
 
     return (
-        <AdminLayout>
-            <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
-                <UserDetailHeader user={user} />
-                {isLoading ? (
-                    <div className="flex min-h-72 items-center justify-center rounded-lg border border-border bg-card">
-                        <Spinner className="size-6" />
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
+            <UserDetailHeader user={user} />
+            {isLoading ? (
+                <div className="flex min-h-72 items-center justify-center rounded-lg border border-border bg-card">
+                    <Spinner className="size-6" />
+                </div>
+            ) : null}
+            {error ? (
+                <section className="rounded-lg border border-border bg-card p-6 text-sm font-semibold text-red-700">
+                    {error.message}
+                </section>
+            ) : null}
+            {user && data ? (
+                <>
+                    <div className="grid grid-cols-12 gap-5">
+                        <UserProfileCard
+                            isBanPending={toggleBan.isPending}
+                            isRolePending={setRole.isPending}
+                            user={user}
+                            onRoleChange={(role) =>
+                                void setRole.mutateAsync(role)
+                            }
+                            onToggleBan={onToggleBan}
+                        />
+                        <SessionsCard
+                            isPending={revokeSession.isPending}
+                            sessions={data.sessions}
+                            onRevoke={onRevokeSession}
+                        />
                     </div>
-                ) : null}
-                {error ? (
-                    <section className="rounded-lg border border-border bg-card p-6 text-sm font-semibold text-red-700">
-                        {error.message}
-                    </section>
-                ) : null}
-                {user && data ? (
-                    <>
-                        <div className="grid grid-cols-12 gap-5">
-                            <UserProfileCard
-                                isBanPending={toggleBan.isPending}
-                                isRolePending={setRole.isPending}
-                                user={user}
-                                onRoleChange={(role) =>
-                                    void setRole.mutateAsync(role)
-                                }
-                                onToggleBan={onToggleBan}
-                            />
-                            <SessionsCard
-                                isPending={revokeSession.isPending}
-                                sessions={data.sessions}
-                                onRevoke={onRevokeSession}
-                            />
-                        </div>
-                        <PermissionGuard permission={deleteUserPermission}>
-                            <DangerZone
-                                isPending={deleteUser.isPending}
-                                onDelete={onDelete}
-                            />
-                        </PermissionGuard>
-                        {mutationErrorMessage ? (
-                            <p className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">
-                                {mutationErrorMessage}
-                            </p>
-                        ) : null}
-                    </>
-                ) : null}
-            </main>
-        </AdminLayout>
+                    <PermissionGuard permission={deleteUserPermission}>
+                        <DangerZone
+                            isPending={deleteUser.isPending}
+                            onDelete={onDelete}
+                        />
+                    </PermissionGuard>
+                    {mutationErrorMessage ? (
+                        <p className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                            {mutationErrorMessage}
+                        </p>
+                    ) : null}
+                </>
+            ) : null}
+        </main>
     );
 };

@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EmailAddress } from '../shared/EmailAddress';
 import { Invitation } from './Invitation';
+import {
+    InvitationExpiredError,
+    InviterMismatchError,
+} from './Invitation.errors';
 import { InvitationExpiration } from './InvitationExpiration';
 import { InvitationRole } from './InvitationRole';
 import { InvitationStatus } from './InvitationStatus';
@@ -140,9 +144,9 @@ describe('招待が送信できることを保証する', () => {
     it('招待の作成者と実行者が異なる場合は送信できない', async () => {
         const invitation = await createInvitation();
 
-        await expect(
-            invitation.ensureSendable('different-inviter-id')
-        ).rejects.toThrow();
+        expect(() => invitation.ensureSendable('different-inviter-id')).toThrow(
+            InviterMismatchError
+        );
     });
 
     it('有効期限が切れている場合は送信できない', async () => {
@@ -152,7 +156,9 @@ describe('招待が送信できることを保証する', () => {
             new Date(Date.now() - 1000 * 60 * 60)
         );
 
-        await expect(invitation.ensureSendable('inviter-id')).rejects.toThrow();
+        expect(() => invitation.ensureSendable('inviter-id')).toThrow(
+            InvitationExpiredError
+        );
     });
 
     it.each(['accepted', 'revoked'] as const)(
@@ -160,9 +166,7 @@ describe('招待が送信できることを保証する', () => {
         async (status) => {
             const invitation = await createInvitation(status);
 
-            await expect(
-                invitation.ensureSendable('inviter-id')
-            ).rejects.toThrow();
+            expect(() => invitation.ensureSendable('inviter-id')).toThrow();
         }
     );
     it('正常な招待は送信できる', async () => {

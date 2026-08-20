@@ -91,6 +91,10 @@ describe('AcceptInvitationUseCase integration', () => {
             })
         );
 
+        if (!savedInvitation) {
+            throw new Error('Invitation not found');
+        }
+
         expect(savedInvitation.acceptedAt).toBeInstanceOf(Date);
     });
 });

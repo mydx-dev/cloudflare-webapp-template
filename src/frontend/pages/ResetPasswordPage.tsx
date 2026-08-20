@@ -1,247 +1,56 @@
-import { Spinner } from '@/components/ui/spinner';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, CircleAlert, Info } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { z } from 'zod';
+import { routes } from '@/../shared/routes';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
-    Field,
-    FieldContent,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-} from '../components/ui/field';
-import { PasswordInput } from '../components/user/PasswordInput';
-import { passwordRule } from '../components/user/rules';
-import {
-    invalidResetPasswordTokenMessage,
-    useResetPassword,
-} from '../hooks/useResetPassword';
-
-const resetPasswordFormSchema = z
-    .object({
-        newPassword: passwordRule,
-        confirmPassword: z.string(),
-    })
-    .required()
-    .refine((data) => data.newPassword === data.confirmPassword, {
-        message: 'パスワードと確認用パスワードが一致しません',
-        path: ['confirmPassword'],
-    });
-
-type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
-
-const newPasswordInputId = 'reset-password-new-password';
-const confirmPasswordInputId = 'reset-password-confirm-password';
-const invalidTokenMessage =
-    'パスワード再設定リンクが無効、または期限切れです。再度パスワード再設定をお試しください。';
-const fallbackErrorMessage =
-    'パスワードの再設定に失敗しました。再度お試しください。';
-
-const shouldShowInvalidTokenMessage = ({
-    hasInvalidToken,
-    token,
-    tokenError,
-}: {
-    hasInvalidToken: boolean;
-    token: string;
-    tokenError: string | null;
-}) => {
-    return (
-        !token ||
-        tokenError === invalidResetPasswordTokenMessage ||
-        hasInvalidToken
-    );
-};
-
-const isInvalidResetPasswordTokenError = (error: unknown) => {
-    return (
-        error instanceof Error &&
-        error.message === invalidResetPasswordTokenMessage
-    );
-};
-
-const InvalidTokenMessage = () => {
-    return (
-        <section className="bg-surface-container-lowest rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(0,32,69,0.08)] relative overflow-hidden">
-            <div
-                className="mb-6 flex items-start gap-3 rounded-lg border border-red-100 bg-red-50 p-4 text-red-600"
-                role="alert"
-            >
-                <CircleAlert />
-                <p className="text-xs font-semibold leading-relaxed">
-                    {invalidTokenMessage}
-                </p>
-            </div>
-            <NavLink
-                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-container transition-colors"
-                to="/forgot-password"
-            >
-                <ArrowLeft />
-                再設定メールを再送する
-            </NavLink>
-        </section>
-    );
-};
-
-const FormErrorMessage = ({ message }: { message: string }) => {
-    return (
-        <div
-            className="mb-6 flex items-start gap-3 rounded-lg border border-red-100 bg-red-50 p-4 text-red-600"
-            role="alert"
-        >
-            <CircleAlert />
-            <p className="text-xs font-semibold leading-relaxed">{message}</p>
-        </div>
-    );
-};
+    PageDescription,
+    PageTitle,
+    PageTitleContainer,
+} from '@/components/ui/page';
+import { Separator } from '@/components/ui/separator';
+import { ResetPasswordForm } from '@/components/user/ResetPasswordForm';
+import { ArrowLeft, CircleAlert } from 'lucide-react';
+import { NavLink, useSearchParams } from 'react-router-dom';
 
 export const ResetPasswordPage = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const token = queryParams.get('token') || '';
-    const tokenError = queryParams.get('error');
-    const [hasInvalidToken, setHasInvalidToken] = useState(false);
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token');
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, isValid },
-    } = useForm<ResetPasswordFormValues>({
-        resolver: zodResolver(resetPasswordFormSchema),
-        mode: 'onChange',
-    });
-
-    const { mutateAsync, isPending, isError, error } = useResetPassword();
-    const errorMessage =
-        error instanceof Error ? error.message : fallbackErrorMessage;
-
-    if (shouldShowInvalidTokenMessage({ hasInvalidToken, token, tokenError })) {
-        return <InvalidTokenMessage />;
+    if (!token) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-8">
+                <Alert variant="destructive">
+                    <CircleAlert className="h-4 w-4" />
+                    <AlertTitle>トークンが見つかりません</AlertTitle>
+                    <AlertDescription>
+                        パスワード再設定リンクをもう一度確認してください。
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
     }
 
     return (
         <>
             {/* Form Card (The Digital Curator Style) */}
-            <section className="bg-surface-container-lowest rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(0,32,69,0.08)] relative overflow-hidden">
-                <div className="mb-8">
-                    <h2 className="font-headline font-bold text-2xl text-primary leading-tight">
-                        新しいパスワードの設定
-                    </h2>
-                    <p className="text-on-surface-variant mt-2 text-sm">
+            <PageTitleContainer>
+                <div>
+                    <PageTitle>パスワード再設定</PageTitle>
+                    <PageDescription>
                         新しいパスワードを入力してください。
-                    </p>
+                    </PageDescription>
                 </div>
-                <form
-                    className="space-y-6"
-                    onSubmit={handleSubmit(async (data) => {
-                        try {
-                            await mutateAsync({
-                                token,
-                                newPassword: data.newPassword,
-                            });
-                            navigate('/sign-in', { replace: true });
-                        } catch (error) {
-                            if (isInvalidResetPasswordTokenError(error)) {
-                                setHasInvalidToken(true);
-                            }
-                            return;
-                        }
-                    })}
+            </PageTitleContainer>
+            <ResetPasswordForm token={token} />
+            {/* Back to Login (Subtle Tonal Link) */}
+            <Separator className="my-8" />
+            <div className="flex justify-center">
+                <NavLink
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-container transition-colors"
+                    to={routes.user.signin}
                 >
-                    {isError && <FormErrorMessage message={errorMessage} />}
-                    <FieldGroup>
-                        {/* Password Field 1 */}
-                        <Field className="space-y-2">
-                            <FieldLabel
-                                htmlFor={newPasswordInputId}
-                                className="block font-label font-semibold text-xs uppercase tracking-wider text-on-surface-variant px-1"
-                                required
-                            >
-                                新しいパスワード
-                            </FieldLabel>
-                            <FieldContent>
-                                <PasswordInput
-                                    id={newPasswordInputId}
-                                    placeholder="••••••••"
-                                    {...register('newPassword')}
-                                />
-                            </FieldContent>
-                            <FieldError
-                                errors={
-                                    errors.newPassword
-                                        ? [errors.newPassword]
-                                        : undefined
-                                }
-                            />
-                        </Field>
-                        {/* Password Field 2 */}
-                        <Field className="space-y-2">
-                            <FieldLabel
-                                htmlFor={confirmPasswordInputId}
-                                className="block font-label font-semibold text-xs uppercase tracking-wider text-on-surface-variant px-1"
-                                required
-                            >
-                                パスワードの確認
-                            </FieldLabel>
-                            <FieldContent>
-                                <PasswordInput
-                                    id={confirmPasswordInputId}
-                                    placeholder="••••••••"
-                                    {...register('confirmPassword')}
-                                    leftIcon={
-                                        <span className="material-symbols-outlined">
-                                            verified_user
-                                        </span>
-                                    }
-                                />
-                            </FieldContent>
-                            <FieldError
-                                errors={
-                                    errors.confirmPassword
-                                        ? [errors.confirmPassword]
-                                        : undefined
-                                }
-                            />
-                        </Field>
-                        {/* Password Requirements Hint (Asymmetric metadata) */}
-                        <div className="bg-highlight rounded-xl p-4 flex items-center gap-3">
-                            <Info />
-                            <ul className="text-[11px] leading-relaxed text-on-surface-variant space-y-1">
-                                <li className="flex items-center gap-1.5">
-                                    <span className="w-1 h-1 rounded-full bg-tertiary-fixed"></span>
-                                    8文字以上で入力してください
-                                </li>
-                                <li className="flex items-center gap-1.5">
-                                    <span className="w-1 h-1 rounded-full bg-tertiary-fixed"></span>
-                                    128文字以下で入力してください
-                                </li>
-                            </ul>
-                        </div>
-                    </FieldGroup>
-                    {/* Action Button (Premium Gradient) */}
-                    <button
-                        className="w-full bg-primary text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg enabled:active:scale-[0.98] transition-transform duration-150 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        type="submit"
-                        disabled={!isValid || isPending}
-                    >
-                        <span>パスワードを保存</span>
-                        {isPending ? <Spinner /> : <ArrowRight />}
-                    </button>
-                </form>
-                {/* Back to Login (Subtle Tonal Link) */}
-                <div className="mt-8 pt-6 border-t border-highlight text-center">
-                    <NavLink
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-container transition-colors"
-                        to="/sign-in"
-                    >
-                        <ArrowLeft />
-                        ログインに戻る
-                    </NavLink>
-                </div>
-            </section>
+                    <ArrowLeft />
+                    ログインに戻る
+                </NavLink>
+            </div>
         </>
     );
 };

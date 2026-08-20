@@ -1,11 +1,6 @@
 import { z } from 'zod';
 
-export const emailRule = z
-    .string()
-    .regex(
-        /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-        'メールアドレスが不正です'
-    );
+export const emailRule = z.email('有効なメールアドレスを入力してください');
 
 export const passwordRule = z
     .string()

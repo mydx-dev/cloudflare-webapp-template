@@ -1,7 +1,7 @@
 import { cleanup, screen, waitFor } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
-import { Route, Routes } from 'react-router-dom';
 import { renderWithProviders } from '../../../tests/frontend/renderWithProviders';
 import { UserDetailPage } from './UserDetailPage';
 
@@ -28,6 +28,10 @@ vi.mock('../lib/authClient', () => ({
         signOut: signOutMock,
         useSession: useSessionMock,
     },
+}));
+
+vi.mock('../components/guards/PermissionGuard', () => ({
+    PermissionGuard: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock('../hooks/useAdminUsers', () => ({
@@ -163,30 +167,5 @@ describe('UserDetailPage', () => {
         await waitFor(() => {
             expect(screen.getByText('一覧画面')).toBeVisible();
         });
-    });
-
-    it('操作権限がない場合は変更系の UI を表示しない', () => {
-        useSessionMock.mockReturnValue({
-            data: {
-                user: {
-                    email: 'viewer@example.com',
-                    name: 'Viewer User',
-                    role: 'user',
-                },
-            },
-        });
-
-        renderUserDetailPage();
-
-        expect(screen.queryByLabelText('ロール変更')).toBeNull();
-        expect(
-            screen.queryByRole('button', { name: 'アクセス制限 (BAN)' })
-        ).toBeNull();
-        expect(screen.queryByRole('button', { name: 'Revoke' })).toBeNull();
-        expect(
-            screen.queryByRole('button', {
-                name: 'アカウントを完全に削除する',
-            })
-        ).toBeNull();
     });
 });

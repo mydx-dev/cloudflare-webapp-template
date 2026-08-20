@@ -14,7 +14,6 @@ import {
     useDeleteAdminUser,
     useToggleAdminUserBan,
 } from '../hooks/useAdminUsers';
-import { AdminLayout } from '../layouts/admin/AdminLayout';
 import type { AdminUser, UserStatusFilter } from '../lib/adminUsersClient';
 
 const roleLabels: Record<string, string> = {
@@ -180,99 +179,95 @@ export const UserListPage = () => {
     const { data, error, isLoading, isFetching } = useAdminUsers(queryParams);
 
     return (
-        <AdminLayout>
-            <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">
-                            ユーザー管理
-                        </h1>
-                        <nav className="mt-1 flex items-center gap-1 text-sm text-secondary">
-                            <span>Dashboard</span>
-                            <ChevronRight className="size-3" />
-                            <span className="font-semibold text-foreground">
-                                Users
-                            </span>
-                        </nav>
-                    </div>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                        <label className="relative">
-                            <span className="sr-only">ユーザー検索</span>
-                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-secondary" />
-                            <input
-                                className="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm outline-none ring-primary/20 transition focus:ring-2 sm:w-72"
-                                placeholder="名前またはメールで検索"
-                                value={searchText}
-                                onChange={(event) =>
-                                    setSearchText(event.target.value)
-                                }
-                            />
-                        </label>
-                        <label>
-                            <span className="sr-only">ステータス</span>
-                            <select
-                                className="h-10 rounded-lg border border-border bg-card px-3 text-sm outline-none ring-primary/20 transition focus:ring-2"
-                                value={status}
-                                onChange={(event) =>
-                                    setStatus(
-                                        event.target.value as UserStatusFilter
-                                    )
-                                }
-                            >
-                                <option value="all">すべて</option>
-                                <option value="active">Active</option>
-                                <option value="banned">Banned</option>
-                            </select>
-                        </label>
-                    </div>
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">
+                        ユーザー管理
+                    </h1>
+                    <nav className="mt-1 flex items-center gap-1 text-sm text-secondary">
+                        <span>Dashboard</span>
+                        <ChevronRight className="size-3" />
+                        <span className="font-semibold text-foreground">
+                            Users
+                        </span>
+                    </nav>
                 </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    <label className="relative">
+                        <span className="sr-only">ユーザー検索</span>
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-secondary" />
+                        <input
+                            className="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm outline-none ring-primary/20 transition focus:ring-2 sm:w-72"
+                            placeholder="名前またはメールで検索"
+                            value={searchText}
+                            onChange={(event) =>
+                                setSearchText(event.target.value)
+                            }
+                        />
+                    </label>
+                    <label>
+                        <span className="sr-only">ステータス</span>
+                        <select
+                            className="h-10 rounded-lg border border-border bg-card px-3 text-sm outline-none ring-primary/20 transition focus:ring-2"
+                            value={status}
+                            onChange={(event) =>
+                                setStatus(
+                                    event.target.value as UserStatusFilter
+                                )
+                            }
+                        >
+                            <option value="all">すべて</option>
+                            <option value="active">Active</option>
+                            <option value="banned">Banned</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
 
-                <section className="overflow-hidden rounded-lg border border-border bg-card">
-                    <div className="flex min-h-14 items-center justify-between border-b border-border bg-muted/40 px-6 py-3">
-                        <p className="text-sm font-semibold text-secondary">
-                            {data ? `${data.total} users` : 'Users'}
-                        </p>
-                        {isFetching && !isLoading ? <Spinner /> : null}
+            <section className="overflow-hidden rounded-lg border border-border bg-card">
+                <div className="flex min-h-14 items-center justify-between border-b border-border bg-muted/40 px-6 py-3">
+                    <p className="text-sm font-semibold text-secondary">
+                        {data ? `${data.total} users` : 'Users'}
+                    </p>
+                    {isFetching && !isLoading ? <Spinner /> : null}
+                </div>
+                {isLoading ? (
+                    <div className="flex min-h-64 items-center justify-center">
+                        <Spinner className="size-6" />
                     </div>
-                    {isLoading ? (
-                        <div className="flex min-h-64 items-center justify-center">
-                            <Spinner className="size-6" />
-                        </div>
-                    ) : error ? (
-                        <div className="p-6 text-sm font-semibold text-red-700">
-                            {error.message}
-                        </div>
-                    ) : data?.users.length ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-muted/50 text-xs font-bold uppercase text-secondary">
-                                    <tr>
-                                        <th className="px-6 py-3">User Name</th>
-                                        <th className="px-6 py-3">Email</th>
-                                        <th className="px-6 py-3">Role</th>
-                                        <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3">
-                                            Joined Date
-                                        </th>
-                                        <th className="px-6 py-3 text-right">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.users.map((user) => (
-                                        <UserRow key={user.id} user={user} />
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="flex min-h-64 items-center justify-center px-6 text-center text-sm text-secondary">
-                            条件に一致するユーザーはいません。
-                        </div>
-                    )}
-                </section>
-            </main>
-        </AdminLayout>
+                ) : error ? (
+                    <div className="p-6 text-sm font-semibold text-red-700">
+                        {error.message}
+                    </div>
+                ) : data?.users.length ? (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-muted/50 text-xs font-bold uppercase text-secondary">
+                                <tr>
+                                    <th className="px-6 py-3">User Name</th>
+                                    <th className="px-6 py-3">Email</th>
+                                    <th className="px-6 py-3">Role</th>
+                                    <th className="px-6 py-3">Status</th>
+                                    <th className="px-6 py-3">Joined Date</th>
+                                    <th className="px-6 py-3 text-right">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.users.map((user) => (
+                                    <UserRow key={user.id} user={user} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="flex min-h-64 items-center justify-center px-6 text-center text-sm text-secondary">
+                        条件に一致するユーザーはいません。
+                    </div>
+                )}
+            </section>
+        </main>
     );
 };

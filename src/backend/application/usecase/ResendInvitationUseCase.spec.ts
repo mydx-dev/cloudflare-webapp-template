@@ -7,6 +7,7 @@ import {
 } from '../../domain/invitation/Invitation.errors';
 import type { InvitationMail } from '../../infrastructure/mail/InvitationMail';
 import type { InvitationRepository } from '../../infrastructure/repository/InvitationRepository';
+import { ApplicationError } from '../dto/ApplicationError';
 import { ResendInvitationUseCase } from './ResendInvitationUseCase';
 
 describe('招待を再送する', () => {
@@ -203,7 +204,11 @@ describe('招待を再送する', () => {
 
         await expect(
             useCase.execute(invitation.id, 'other-inviter-id')
-        ).rejects.toThrow(InviterMismatchError);
+        ).rejects.toThrow(
+            new ApplicationError(new InviterMismatchError(), [
+                InviterMismatchError,
+            ])
+        );
     });
 
     it('承認済みの場合は再発行せずエラーを送出する', async () => {
@@ -236,6 +241,10 @@ describe('招待を再送する', () => {
 
         await expect(
             useCase.execute(invitation.id, 'inviter-id')
-        ).rejects.toThrow(InvitationAlreadyAcceptedError);
+        ).rejects.toThrow(
+            new ApplicationError(new InvitationAlreadyAcceptedError(), [
+                InvitationAlreadyAcceptedError,
+            ])
+        );
     });
 });

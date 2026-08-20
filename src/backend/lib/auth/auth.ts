@@ -54,7 +54,7 @@ export const auth = betterAuth({
             validAudiences: [`${baseURL}/mcp`],
         }),
     ],
-    trustedOrigins: ['http://localhost:5173'],
+    trustedOrigins: env.TRUSTED_ORIGINS.split(','),
 });
 
 export type Auth = typeof auth;

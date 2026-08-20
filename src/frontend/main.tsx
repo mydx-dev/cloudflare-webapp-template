@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
+import { Toaster } from './components/ui/toast';
 import { queryClient } from './lib/queryClient';
 import './styles.css';
 
@@ -18,6 +19,7 @@ createRoot(root).render(
             <QueryClientProvider client={queryClient}>
                 <App />
             </QueryClientProvider>
+            <Toaster />
         </BrowserRouter>
     </React.StrictMode>
 );

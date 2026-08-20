@@ -91,9 +91,9 @@ export class Invitation {
         });
     }
 
-    async ensureSendable(inviterId: string): Promise<void> {
+    ensureSendable(inviterId: string): void {
         this.inviter.ensureSameAs(inviterId);
-        this.expiration.ensureActive(new Date());
         this.status.ensurePending();
+        this.expiration.ensureActive(new Date());
     }
 }
