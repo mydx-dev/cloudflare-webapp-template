@@ -28,8 +28,8 @@ const createWrapper = () => {
 };
 
 describe('useResendInvitation integration', () => {
-    beforeEach(() => {
-        authClient.signOut();
+    beforeEach(async () => {
+        await authClient.signOut();
     });
 
     it('実APIと疎通し、認証エラーをErrorResolutionへ変換する', async () => {

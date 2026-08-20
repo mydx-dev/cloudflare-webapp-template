@@ -33,15 +33,28 @@ describe('招待を再送する', () => {
             invitationMail as unknown as InvitationMail
         );
 
-        vi.mocked(invitationRepository.findById).mockResolvedValue(invitation);
-
         const result = await useCase.execute(invitation.id, 'inviter-id');
 
-        expect(result.id).toBe(invitation.id);
-        expect(result.token.value).not.toBe(invitation.token.value);
+        const savedInvitation = vi.mocked(invitationRepository.save).mock
+            .calls[0][0];
+        const sentInvitation = vi.mocked(invitationMail.send).mock.calls[0][0];
 
-        expect(invitationRepository.save).toHaveBeenCalledWith(result);
-        expect(invitationMail.send).toHaveBeenCalledWith(result);
+        expect(savedInvitation.id).toBe(invitation.id);
+        expect(savedInvitation.token.value).not.toBe(invitation.token.value);
+
+        expect(sentInvitation).toBe(savedInvitation);
+
+        expect(result).toEqual({
+            id: savedInvitation.id,
+            email: savedInvitation.invitee.value,
+            role: savedInvitation.role.value,
+            status: savedInvitation.status.value,
+            inviterId: savedInvitation.inviter.id,
+            createdAt: savedInvitation.createdAt,
+            expiredAt: savedInvitation.expiration.value,
+            acceptedAt: savedInvitation.acceptedAt,
+            revokedAt: savedInvitation.revokedAt,
+        });
     });
 
     it('期限切れの招待は新しい招待を保存して送信する', async () => {

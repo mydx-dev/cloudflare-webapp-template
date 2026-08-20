@@ -26,10 +26,7 @@ export class ResendInvitationUseCase implements UseCase {
         private readonly invitationMail: InvitationMail
     ) {}
 
-    async execute(
-        invitationId: string,
-        inviterId: string
-    ): Promise<Invitation> {
+    async execute(invitationId: string, inviterId: string) {
         try {
             let invitation =
                 await this.invitationRepository.findById(invitationId);
@@ -58,7 +55,17 @@ export class ResendInvitationUseCase implements UseCase {
             await this.invitationRepository.save(invitation);
             await this.invitationMail.send(invitation);
 
-            return invitation;
+            return {
+                id: invitation.id,
+                inviterId: invitation.inviter.id,
+                email: invitation.invitee.value,
+                status: invitation.status.value,
+                role: invitation.role.value,
+                createdAt: invitation.createdAt,
+                expiredAt: invitation.expiration.value,
+                acceptedAt: invitation.acceptedAt,
+                revokedAt: invitation.revokedAt,
+            };
         } catch (error) {
             throw new ApplicationError(error, ResendInvitationUseCase.errors);
         }

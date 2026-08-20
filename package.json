@@ -16,7 +16,7 @@
         "test:front": "node scripts/testFront.mjs",
         "test:front:watch": "vitest --config vitest.browser.config.ts",
         "test:integration": "vitest run --config vitest.integration.config.ts",
-        "check": "pnpm spec:generate && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build && pnpm cf:types",
+        "check": "pnpm spec && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build && pnpm cf:types",
         "dev": "vite",
         "build": "vite build",
         "cf:dev": "wrangler dev",
